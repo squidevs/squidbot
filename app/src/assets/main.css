@@ -1,0 +1,32 @@
+/* Ajustar o layout para que o aside ocupe toda a altura da página */
+html {
+  margin: 0;
+}
+
+/* Ajustar o conteúdo principal para não ficar sobreposto à barra lateral */
+main {
+  margin-left: 280px; /* Espaço igual à largura da barra lateral */
+  padding: 20px;
+}
+
+/* Criar um container para ocupar toda a área visível ao lado do sidebar */
+.container-main {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* Altura total da viewport */
+  margin-left: 280px; /* Espaço igual à largura do sidebar */
+  padding: 20px;
+  overflow-y: auto; /* Adicionar rolagem vertical, se necessário */
+}
+
+/* Remover a barra de rolagem horizontal e ajustar o layout */
+body {
+  overflow-x: hidden; /* Impedir rolagem horizontal */
+}
+
+.container {
+  box-sizing: border-box; /* Garantir que padding e bordas sejam incluídos no tamanho total */
+  width: 100%; /* Ajustar largura para evitar estouro */
+}
+
+

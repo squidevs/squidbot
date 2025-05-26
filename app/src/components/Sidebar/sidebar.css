@@ -1,0 +1,13 @@
+/* Tornar a barra lateral fixa na esquerda e ocupar toda a altura visível da tela */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh; /* Altura total da viewport */
+  width: 280px; /* Largura fixa */
+  background-color: #343a40; /* Cor de fundo */
+  color: white;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+}

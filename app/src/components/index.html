@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Admin - Squibot</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container py-4">
+    <!-- ALERTAS DE FEEDBACK -->
+    <div id="alertaFeedback" class="alert d-none" role="alert"></div>
+    <ul class="nav nav-tabs mb-4" id="adminTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="painel-tab" data-bs-toggle="tab" data-bs-target="#painel" type="button" role="tab">Painel Admin</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="votos-tab" data-bs-toggle="tab" data-bs-target="#votos" type="button" role="tab">Votos</button>
+        </li>
+    </ul>
+    <div class="tab-content" id="adminTabsContent">
+        <div class="tab-pane fade show active" id="painel" role="tabpanel">
+            <h2 class="mb-3">Painel Admin - Squibot</h2>
+            <form id="formConfig" class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label">Mensagens para grupos?</label><br>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="mensagensParaGrupos" name="mensagensParaGrupos">
+                        <label class="form-check-label" for="mensagensParaGrupos">Ativar</label>
+                    </div>
+                </div>
+                <div class="col-md-6 d-flex align-items-end">
+                    <button id="btnPausarBot" type="button" class="btn btn-outline-danger ms-auto">
+                        <span id="iconBotStatus" class="bi bi-pause-circle"></span> <span id="labelBotStatus">Pausar bot</span>
+                    </button>
+                </div>
+                <div class="col-md-12">
+                    <label class="form-label">Mensagem default (caso nenhuma opção seja digitada)</label>
+                    <textarea class="form-control" name="mensagemDefault" id="mensagemDefault" rows="2"></textarea>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Delay mensagem (ms)</label>
+                    <input class="form-control" type="number" name="delayMensagem" min="0" max="10000">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Latitude</label>
+                    <input class="form-control" type="text" name="lat">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Longitude</label>
+                    <input class="form-control" type="text" name="lng">
+                </div>
+                <div class="col-md-12">
+                    <label class="form-label">Descrição da Localização</label>
+                    <input class="form-control" type="text" name="descricao">
+                </div>
+                <div class="col-12">
+                    <button class="btn btn-primary" type="submit">Salvar Configurações</button>
+                </div>
+            </form>
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h5>Status do Bot</h5>
+                    <ul class="list-group mb-2">
+                        <li class="list-group-item"><b>Status de conexão:</b> <span id="status">Carregando...</span></li>
+                        <li class="list-group-item"><b>QR Code:</b> <a href="/admin/qrcode" target="_blank">Ver QR Code</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-12">
+                    <h5>Log das Mensagens</h5>
+                    <div style="max-height:180px;overflow:auto;background:#f8f9fa;padding:8px;border-radius:4px;">
+                        <pre id="logMensagens">Carregando...</pre>
+                    </div>
+                </div>
+            </div>
+            <h4 class="mb-2">Menu de Opções</h4>
+            <button class="btn btn-success mb-2" id="btnAddOpcao"><i class="bi bi-plus-circle"></i> Adicionar Opção</button>
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle">
+                    <thead class="table-light">
+<tr>
+<th>ID</th>
+<th>Acionador</th>
+<th>Título</th>
+<th>Resposta do Bot</th>
+<th>Imagem</th>
+<th>GIF</th>
+<th>PDF</th>
+<th>Áudio</th>
+<th>Sticker</th>
+<th>Localização</th>
+<th>Delay</th>
+<th>Digitando</th>
+<th>Gravando Áudio</th>
+<th>Status Bot</th>
+<th>Tempo</th>
+<th>Tipo de Resposta</th>
+<th>Ações</th>
+</tr>
+</thead>
+<tbody id="tabelaOpcoesMenu"></tbody>
+                </table>
+            </div>
+            <h4 class="mb-2">Mensagens Agendadas</h4>
+            <button class="btn btn-success mb-2" id="btnAddMsgAgendada"><i class="bi bi-plus-circle"></i> Adicionar Mensagem Agendada</button>
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nome</th>
+                            <th>Telefone</th>
+                            <th>Mensagem</th>
+                            <th>Horário</th>
+                            <th>Recorrência</th>
+                            <th>Status</th>
+                            <th>Imagem</th>
+                            <th>GIF</th>
+                            <th>PDF</th>
+                            <th>Áudio</th>
+                            <th>Sticker</th>
+                            <th>Tipo de Resposta</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaMensagensAgendadas"></tbody>
+                </table>
+            </div>
+            <!-- Modal Mensagem Agendada -->
+            <div class="modal fade" id="modalMsgAgendada" tabindex="-1" aria-labelledby="modalMsgAgendadaLabel" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="modalMsgAgendadaLabel">Adicionar Mensagem Agendada</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <form id="formMsgAgendada" enctype="multipart/form-data">
+                      <div class="mb-3">
+                        <label class="form-label">Nome</label>
+                        <input class="form-control" type="text" name="nome" required>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label">Telefone</label>
+                        <input class="form-control" type="text" name="telefone" required>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label">Mensagem</label>
+                        <input class="form-control" type="text" name="mensagem" required>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label">Data/Hora</label>
+                        <input class="form-control" type="datetime-local" name="datahora" required>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label">Recorrência</label>
+                        <select class="form-select" name="recorrencia">
+                          <option value="unica">Única</option>
+                          <option value="hora">Hora em hora</option>
+                          <option value="diaria">Diária</option>
+                          <option value="semanal">Semanal</option>
+                          <option value="mensal">Mensal</option>
+                        </select>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label">Imagem (arquivo)</label>
+                        <input type="file" class="form-control" name="imagem" accept="image/*">
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label">GIF (arquivo)</label>
+                        <input type="file" class="form-control" name="gif" accept="image/gif">
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label">PDF (arquivo)</label>
+                        <input type="file" class="form-control" name="pdf" accept="application/pdf">
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label">Áudio (arquivo)</label>
+                        <input type="file" class="form-control" name="audio" accept="audio/*">
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label">Sticker (arquivo)</label>
+                        <input type="file" class="form-control" name="sticker" accept="image/webp,image/png,image/jpeg">
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label">Tipo de Resposta</label>
+                        <select class="form-select" id="msgTipoResposta" name="tipoResposta">
+                          <option value="unica">Única (texto e mídias juntos)</option>
+                          <option value="multipla">Múltipla (mensagens separadas)</option>
+                        </select>
+                      </div>
+                      <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">Salvar</button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+        </div>
+        <div class="tab-pane fade" id="votos" role="tabpanel">
+            <h2>Votos</h2>
+            <div class="row">
+                <div class="col-md-6">
+                    <ul class="list-group mb-3">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Sim <span class="badge bg-success" id="votosSim">0</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Não <span class="badge bg-danger" id="votosNao">0</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <canvas id="graficoVotos"></canvas>
+                </div>
+            </div>
+            <form method="POST" action="/admin/reset-votos">
+                <button type="submit" class="btn btn-warning mt-3">Zerar Votos</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Opção Menu -->
+<div class="modal fade" id="modalOpcaoMenu" tabindex="-1" aria-labelledby="modalOpcaoMenuLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalOpcaoMenuLabel">Adicionar/Edição de Opção</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="formOpcaoMenu">
+          <input type="hidden" name="id" id="opcaoId">
+          <div class="mb-3">
+            <label for="opcaoAcionador" class="form-label">Acionador</label>
+            <input type="text" class="form-control" id="opcaoAcionador" name="acionador" required>
+          </div>
+          <div class="mb-3">
+            <label for="opcaoTitulo" class="form-label">Título da Opção</label>
+            <input type="text" class="form-control" id="opcaoTitulo" name="titulo" required>
+          </div>
+          <div class="mb-3">
+            <label for="opcaoResposta" class="form-label">Resposta do Bot (texto)</label>
+            <textarea class="form-control" id="opcaoResposta" name="resposta" rows="3" required></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Imagem (arquivo)</label>
+            <input type="file" class="form-control" id="opcaoImagem" name="imagem" accept="image/*">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">GIF (arquivo)</label>
+            <input type="file" class="form-control" id="opcaoGif" name="gif" accept="image/gif">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">PDF (arquivo)</label>
+            <input type="file" class="form-control" id="opcaoPdf" name="pdf" accept="application/pdf">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Áudio (arquivo)</label>
+            <input type="file" class="form-control" id="opcaoAudio" name="audio" accept="audio/*">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Sticker (arquivo)</label>
+            <input type="file" class="form-control" id="opcaoSticker" name="sticker" accept="image/webp,image/png,image/jpeg">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Localização</label>
+            <div class="row g-2">
+              <div class="col-md-4"><input type="text" class="form-control" id="opcaoLat" name="lat" placeholder="Latitude"></div>
+              <div class="col-md-4"><input type="text" class="form-control" id="opcaoLng" name="lng" placeholder="Longitude"></div>
+              <div class="col-md-4"><input type="text" class="form-control" id="opcaoDesc" name="descricao" placeholder="Descrição"></div>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Delay (ms)</label>
+            <input type="number" class="form-control" id="opcaoDelay" name="delay" min="0" value="0">
+          </div>
+          <div class="mb-3 form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="opcaoMostrarDigitando" name="mostrarDigitando">
+            <label class="form-check-label" for="opcaoMostrarDigitando">Mostrar digitando</label>
+          </div>
+          <div class="mb-3 form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="opcaoMostrarGravandoAudio" name="mostrarGravandoAudio">
+            <label class="form-check-label" for="opcaoMostrarGravandoAudio">Mostrar gravando áudio</label>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Status do Bot</label>
+            <select class="form-select" id="opcaoStatusBot" name="statusBot">
+              <option value="normal">Normal</option>
+              <option value="pausar">Pausar</option>
+              <option value="despausar">Despausar</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Tempo de Pausa (minutos)</label>
+            <input type="number" class="form-control" id="opcaoTempoPausa" name="tempoPausa" min="0" value="0">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Tipo de Resposta</label>
+            <select class="form-select" id="opcaoTipoResposta" name="tipoResposta">
+              <option value="unica">Única (texto e mídias juntos)</option>
+              <option value="multipla">Múltipla (mensagens separadas)</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary">Salvar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Função para mostrar feedback
+function mostrarAlerta(msg, tipo = 'success') {
+    const alerta = document.getElementById('alertaFeedback');
+    alerta.textContent = msg;
+    alerta.className = `alert alert-${tipo}`;
+    alerta.classList.remove('d-none');
+    setTimeout(()=>{ alerta.classList.add('d-none'); }, 4000);
+}
+
+// Função para atualizar painel com dados do backend
+function atualizarPainel() {
+    fetch('/data.json').then(r => {
+        if (!r.ok) throw new Error(`Erro HTTP: ${r.status}`);
+        return r.json();
+    }).then(config => {
+        document.querySelector('[name=mensagensParaGrupos]').checked = !!config.mensagensParaGrupos;
+        document.getElementById('mensagemDefault').value = config.mensagemDefault || '';
+        document.querySelector('[name=delayMensagem]').value = config.delayMensagem || '';
+        document.querySelector('[name=lat]').value = config.localizacao?.lat || '';
+        document.querySelector('[name=lng]').value = config.localizacao?.lng || '';
+        document.querySelector('[name=descricao]').value = config.localizacao?.descricao || '';
+        document.getElementById('status').textContent = config.status || 'Desconhecido';
+        document.getElementById('logMensagens').textContent = (config.logMensagens||[]).slice(-30).join('\n');
+        // Opções do menu
+        const tbody = document.getElementById('tabelaOpcoesMenu');
+        tbody.innerHTML = '';
+        (config.opcoesMenu||[]).forEach(opcao => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${opcao.id}</td><td>${opcao.acionador||''}</td><td>${opcao.titulo}</td><td>${opcao.resposta}</td>
+                <td>${opcao.imagem ? `<a href='/${opcao.imagem}' target='_blank'>Ver Imagem</a>` : 'Nenhuma'}</td>
+                <td>${opcao.gif ? `<a href='/${opcao.gif}' target='_blank'>Ver GIF</a>` : 'Nenhum'}</td>
+                <td>${opcao.pdf ? `<a href='/${opcao.pdf}' target='_blank'>Ver PDF</a>` : 'Nenhum'}</td>
+                <td>${opcao.audio ? `<a href='/${opcao.audio}' target='_blank'>Ouvir Áudio</a>` : 'Nenhum'}</td>
+                <td>${opcao.sticker ? `<a href='/${opcao.sticker}' target='_blank'>Ver Sticker</a>` : 'Nenhum'}</td>
+                <td>${opcao.localizacao?.descricao}</td>
+                <td>${opcao.delay}</td>
+                <td>${opcao.mostrarDigitando ? 'Sim' : 'Não'}</td>
+                <td>${opcao.mostrarGravandoAudio ? 'Sim' : 'Não'}</td>
+                <td>${opcao.statusBot}</td>
+                <td>${opcao.tempoPausa}</td>
+                <td>${opcao.tipoResposta === 'multipla' ? 'Múltipla' : 'Única'}</td>
+                <td>
+                <button class='btn btn-sm btn-primary btn-editar-opcao' data-id='${opcao.id}'>Editar</button>
+                <button class='btn btn-sm btn-danger btn-excluir-opcao' data-id='${opcao.id}'>Excluir</button>
+                </td>`;
+            tbody.appendChild(tr);
+        });
+        // Mensagens agendadas
+        const tbodyMsg = document.getElementById('tabelaMensagensAgendadas');
+        tbodyMsg.innerHTML = '';
+        (config.mensagensAgendadas||[]).forEach((m, i) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${m.nome||''}</td>
+                <td>${m.telefone||''}</td>
+                <td>${m.mensagem||''}</td>
+                <td>${m.datahora||''}</td>
+                <td>${m.recorrencia||'unica'}</td>
+                <td>${m.status||'nao_enviada'}</td>
+                <td>${m.imagem?`<a href='/${m.imagem}' target='_blank'>Ver</a>`:''}</td>
+                <td>${m.gif?`<a href='/${m.gif}' target='_blank'>Ver</a>`:''}</td>
+                <td>${m.pdf?`<a href='/${m.pdf}' target='_blank'>Ver</a>`:''}</td>
+                <td>${m.audio?`<a href='/${m.audio}' target='_blank'>Ver</a>`:''}</td>
+                <td>${m.sticker?`<a href='/${m.sticker}' target='_blank'>Ver</a>`:''}</td>
+                <td>${m.tipoResposta === 'multipla' ? 'Múltipla' : 'Única'}</td>
+                <td>
+                    <button class='btn btn-sm btn-primary btn-editar-msg' data-index='${i}'>Editar</button>
+                    <form method='POST' action='/admin/del-mensagem-agendada' style='display:inline'>
+                        <input type='hidden' name='index' value='${i}'/>
+                        <button class='btn btn-sm btn-danger' type='submit'>Excluir</button>
+                    </form>
+                </td>`;
+            tbodyMsg.appendChild(tr);
+        });
+        // Votos
+        document.getElementById('votosSim').textContent = config.votos?.Sim || 0;
+        document.getElementById('votosNao').textContent = config.votos?.Não || 0;
+        if (window.graficoVotos && typeof window.graficoVotos.destroy === 'function') {
+            window.graficoVotos.destroy();
+        }
+        const ctx = document.getElementById('graficoVotos').getContext('2d');
+        window.graficoVotos = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Sim', 'Não'],
+                datasets: [{
+                    data: [config.votos?.Sim || 0, config.votos?.Não || 0],
+                    backgroundColor: ['#198754', '#dc3545']
+                }]
+            },
+            options: {responsive:true}
+        });
+        // Bot status
+        if(config.botPausado) {
+            document.getElementById('btnPausarBot').classList.remove('btn-outline-success');
+            document.getElementById('btnPausarBot').classList.add('btn-outline-danger');
+            document.getElementById('iconBotStatus').className = 'bi bi-play-circle';
+            document.getElementById('labelBotStatus').textContent = 'Ativar bot';
+        } else {
+            document.getElementById('btnPausarBot').classList.remove('btn-outline-danger');
+            document.getElementById('btnPausarBot').classList.add('btn-outline-success');
+            document.getElementById('iconBotStatus').className = 'bi bi-pause-circle';
+            document.getElementById('labelBotStatus').textContent = 'Pausar bot';
+        }
+    });
+}
+// Inicialização
+atualizarPainel();
+setInterval(atualizarPainel, 10000);
+
+// Atualiza status do bot via endpoint dedicado
+function atualizarStatusBot() {
+    fetch('/admin/status').then(r => r.json()).then(statusObj => {
+        document.getElementById('status').textContent = statusObj.status || 'Desconhecido';
+    }).catch(err => console.error('Erro ao atualizar status do bot:', err));
+}
+// Atualização periódica do status do bot
+setInterval(atualizarStatusBot, 5000);
+
+// Botão Pausar/Ativar Bot
+btnPausarBot.onclick = function() {
+    // Se o bot está rodando (verde), queremos pausar (botPausado = true)
+    // Se o bot está pausado (vermelho), queremos ativar (botPausado = false)
+    const botPausado = document.getElementById('btnPausarBot').classList.contains('btn-outline-success');
+    fetch('/admin/config', {
+        method: 'POST',
+        headers: {'Content-Type':'application/x-www-form-urlencoded'},
+        body: `botPausado=${botPausado}`
+    }).then(() => atualizarPainel());
+};
+
+// Modal Opção Menu
+const modalOpcaoMenu = new bootstrap.Modal(document.getElementById('modalOpcaoMenu'));
+document.getElementById('btnAddOpcao').onclick = function() {
+    document.getElementById('formOpcaoMenu').reset();
+    document.getElementById('opcaoId').value = '';
+    modalOpcaoMenu.show();
+};
+document.getElementById('tabelaOpcoesMenu').onclick = function(e) {
+    if(e.target.classList.contains('btn-editar-opcao')) {
+        const id = e.target.getAttribute('data-id');
+        fetch('/data.json').then(r=>r.json()).then(config=>{
+            const opcao = (config.opcoesMenu||[]).find(o=>o.id==id);
+            if(opcao) {
+                document.getElementById('opcaoId').value = opcao.id;
+                document.getElementById('opcaoTitulo').value = opcao.titulo;
+                document.getElementById('opcaoResposta').value = opcao.resposta;
+                document.getElementById('opcaoAcionador').value = opcao.acionador || '';
+                document.getElementById('opcaoDelay').value = opcao.delay || 0;
+                document.getElementById('opcaoMostrarDigitando').checked = !!opcao.mostrarDigitando;
+                document.getElementById('opcaoMostrarGravandoAudio').checked = !!opcao.mostrarGravandoAudio;
+                document.getElementById('opcaoStatusBot').value = opcao.statusBot || 'normal';
+                document.getElementById('opcaoTempoPausa').value = opcao.tempoPausa || 0;
+                document.getElementById('opcaoTipoResposta').value = opcao.tipoResposta || 'unica';
+
+                // Limpar links antigos antes de adicionar novos
+                const camposArquivo = ['Imagem', 'Gif', 'Pdf', 'Audio', 'Sticker'];
+                camposArquivo.forEach(campo => {
+                    const elemento = document.getElementById(`opcao${campo}`);
+                    const linksExistentes = elemento.parentNode.querySelectorAll('a');
+                    linksExistentes.forEach(link => link.remove());
+                });
+
+                // Adicionar links para arquivos existentes
+                if (opcao.imagem) {
+                    const linkImagem = document.createElement('a');
+                    linkImagem.href = `/${opcao.imagem}`;
+                    linkImagem.textContent = 'Ver Imagem';
+                    linkImagem.target = '_blank';
+                    document.getElementById('opcaoImagem').parentNode.appendChild(linkImagem);
+                }
+                if (opcao.gif) {
+                    const linkGif = document.createElement('a');
+                    linkGif.href = `/${opcao.gif}`;
+                    linkGif.textContent = 'Ver GIF';
+                    linkGif.target = '_blank';
+                    document.getElementById('opcaoGif').parentNode.appendChild(linkGif);
+                }
+                if (opcao.pdf) {
+                    const linkPdf = document.createElement('a');
+                    linkPdf.href = `/${opcao.pdf}`;
+                    linkPdf.textContent = 'Ver PDF';
+                    linkPdf.target = '_blank';
+                    document.getElementById('opcaoPdf').parentNode.appendChild(linkPdf);
+                }
+                if (opcao.audio) {
+                    const linkAudio = document.createElement('a');
+                    linkAudio.href = `/${opcao.audio}`;
+                    linkAudio.textContent = 'Ouvir Áudio';
+                    linkAudio.target = '_blank';
+                    document.getElementById('opcaoAudio').parentNode.appendChild(linkAudio);
+                }
+                if (opcao.sticker) {
+                    const linkSticker = document.createElement('a');
+                    linkSticker.href = `/${opcao.sticker}`;
+                    linkSticker.textContent = 'Ver Sticker';
+                    linkSticker.target = '_blank';
+                    document.getElementById('opcaoSticker').parentNode.appendChild(linkSticker);
+                }
+
+                modalOpcaoMenu.show();
+            } else {
+                console.error('Opção não encontrada para edição:', id);
+            }
+        }).catch(err=>console.error('Erro ao carregar dados para edição:', err));
+    }
+    if(e.target.classList.contains('btn-excluir-opcao')) {
+        const id = e.target.getAttribute('data-id');
+        fetch('/admin/del-opcao-menu', {method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:`id=${id}`})
+            .then(()=>atualizarPainel());
+    }
+};
+// Remover arquivo já salvo
+modalOpcaoMenu._element.addEventListener('click', function(e) {
+    if(e.target.classList.contains('btn-remover-arquivo')) {
+        const nome = e.target.getAttribute('data-arquivo');
+        document.getElementById('opcao'+nome.charAt(0).toUpperCase()+nome.slice(1)).value = '';
+        e.target.parentNode.remove();
+    }
+});
+document.getElementById('formOpcaoMenu').onsubmit = function(e) {
+    e.preventDefault();
+    const form = document.getElementById('formOpcaoMenu');
+    // Validação frontend
+    if(!form.opcaoAcionador.value.trim() || !form.opcaoTitulo.value.trim() || !form.opcaoResposta.value.trim()) {
+        mostrarAlerta('Preencha todos os campos obrigatórios!', 'danger');
+        return;
+    }
+    // Padroniza tipos numéricos
+    form.opcaoDelay.value = parseInt(form.opcaoDelay.value)||0;
+    form.opcaoTempoPausa.value = parseInt(form.opcaoTempoPausa.value)||0;
+    const id = document.getElementById('opcaoId').value;
+    const url = id ? '/admin/edit-opcao-menu' : '/admin/add-opcao-menu';
+    const formData = new FormData(form);
+    if (id) formData.append('id', id);
+    formData.append('tipoResposta', document.getElementById('opcaoTipoResposta').value);
+    fetch(url, {method:'POST', body: formData})
+        .then(r => {
+            if (!r.ok) throw new Error(`Erro HTTP: ${r.status}`);
+            return r.json();
+        })
+        .then(resp => {
+            if (resp.ok) {
+                mostrarAlerta('Opção salva com sucesso!', 'success');
+                atualizarPainel();
+                modalOpcaoMenu.hide();
+            } else {
+                mostrarAlerta('Erro ao salvar opção!', 'danger');
+            }
+        })
+        .catch(err => {
+            console.error('Erro ao salvar opção:', err);
+            mostrarAlerta('Erro ao salvar opção!', 'danger');
+        });
+};
+// Salvar mensagem default
+mensagemDefault.onchange = function() {
+    fetch('/admin/mensagem-default', {method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:`mensagemDefault=${encodeURIComponent(this.value)}`});
+};
+// Salvar config geral
+formConfig.onsubmit = function(e) {
+    e.preventDefault();
+    const data = new FormData(formConfig);
+    fetch('/admin/config', {method:'POST',body:new URLSearchParams(data)}).then(()=>atualizarPainel());
+};
+
+// Mensagens Agendadas
+document.getElementById('btnAddMsgAgendada').onclick = function() {
+    document.getElementById('formMsgAgendada').reset();
+    document.getElementById('formMsgAgendada').removeAttribute('data-edit-index');
+    new bootstrap.Modal(document.getElementById('modalMsgAgendada')).show();
+};
+document.getElementById('formMsgAgendada').onsubmit = function(e) {
+    e.preventDefault();
+    const form = document.getElementById('formMsgAgendada');
+    // Validação frontend
+    if(!form.nome.value.trim() || !form.telefone.value.trim() || !form.mensagem.value.trim() || !form.datahora.value.trim()) {
+        mostrarAlerta('Preencha todos os campos obrigatórios da mensagem agendada!', 'danger');
+        return;
+    }
+    const formData = new FormData(form);
+    fetch('/admin/add-mensagem-agendada', {method:'POST', body: formData})
+        .then(r=>r.json())
+        .then(resp=>{
+            if(resp && resp.ok) {
+                modalMsgAgendada.hide(); form.removeAttribute('data-edit-index'); atualizarPainel(); mostrarAlerta('Mensagem agendada salva!','success');
+            } else {
+                mostrarAlerta(resp && resp.error ? resp.error : 'Erro ao salvar mensagem agendada!','danger');
+            }
+        })
+        .catch(()=>mostrarAlerta('Erro ao salvar mensagem agendada!','danger'));
+};
+// Edição de mensagem agendada
+const modalMsgAgendada = new bootstrap.Modal(document.getElementById('modalMsgAgendada'));
+document.getElementById('tabelaMensagensAgendadas').onclick = function(e) {
+    if(e.target.classList.contains('btn-editar-msg')) {
+        const idx = e.target.getAttribute('data-index');
+        fetch('/data.json').then(r=>r.json()).then(config=>{
+            const m = (config.mensagensAgendadas||[])[idx];
+            if(m) {
+                const form = document.getElementById('formMsgAgendada');
+                form.reset();
+                form.elements['nome'].value = m.nome||'';
+                form.elements['telefone'].value = m.telefone||'';
+                form.elements['mensagem'].value = m.mensagem||'';
+                form.elements['datahora'].value = m.datahora||'';
+                form.elements['recorrencia'].value = m.recorrencia||'unica';
+                form.elements['tipoResposta'].value = m.tipoResposta || 'unica';
+                form.setAttribute('data-edit-index', idx);
+                modalMsgAgendada.show();
+            }
+        });
+    }
+};
+document.getElementById('formMsgAgendada').onsubmit = function(e) {
+    e.preventDefault();
+    const form = document.getElementById('formMsgAgendada');
+    const formData = new FormData(form);
+    const idx = form.getAttribute('data-edit-index');
+    let url = '/admin/add-mensagem-agendada';
+    if(idx !== null && idx !== undefined && idx !== '') {
+        formData.append('index', idx);
+        url = '/admin/edit-mensagem-agendada';
+    }
+    formData.append('tipoResposta', form.elements['tipoResposta'].value);
+    fetch(url, {method:'POST', body: formData})
+        .then(()=>{
+            modalMsgAgendada.hide();
+            form.removeAttribute('data-edit-index');
+            atualizarPainel();
+        });
+};
+// Adapta painel para mostrar/remover arquivos já salvos ao editar opção/menu
+function preencherArquivosExistentes(opcao) {
+    const arquivos = ['imagem','gif','pdf','audio','sticker'];
+    arquivos.forEach(nome=>{
+        const input = document.getElementById('opcao'+nome.charAt(0).toUpperCase()+nome.slice(1));
+        if(opcao[nome]) {
+            let div = input.nextElementSibling;
+            if(!div || !div.classList.contains('arquivo-existente')) {
+                div = document.createElement('div');
+                div.className = 'arquivo-existente mt-1';
+                input.parentNode.appendChild(div);
+            }
+            div.innerHTML = `<a href='/${opcao[nome]}' target='_blank'>${opcao[nome]}</a> <button type='button' class='btn btn-sm btn-outline-danger btn-remover-arquivo' data-arquivo='${nome}'>Remover</button>`;
+        } else {
+            let div = input.nextElementSibling;
+            if(div && div.classList.contains('arquivo-existente')) div.remove();
+        }
+    });
+}
+</script>
+</body>
+</html>
