@@ -11,3 +11,11 @@
   flex-direction: column;
   padding: 1rem;
 }
+
+
+
+a {
+  color: white !important;
+  text-decoration-line: none !important;
+  text-decoration: none !important;
+}

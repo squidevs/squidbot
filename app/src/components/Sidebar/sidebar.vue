@@ -4,6 +4,10 @@ import "./sidebar.css";
 defineProps({
   msg: String,
 });
+const submenuOpen = ref(false);
+const toggleSubmenu = () => {
+  submenuOpen.value = !submenuOpen.value;
+};
 
 const count = ref(0);
 </script>
@@ -20,45 +24,49 @@ const count = ref(0);
       <span class="fs-4">Squidev</span>
     </a>
     <hr />
-    <ul class="nav nav-pills flex-column mb-auto">
-      <li class="nav-item">
-        <a href="#" class="nav-link active" aria-current="page">
-          <svg class="bi me-2" width="16" height="16">
-            <use xlink:href="#home"></use>
-          </svg>
-          Configurações
-        </a>
+    <ul class="nav-pills flex-column mb-auto">
+      <li @click="$emit('navigate', 'Config')">
+        <i class="bi bi-gear"></i> Configurações
       </li>
-      <li>
-        <a href="#" class="nav-link text-white">
-          <svg class="bi me-2" width="16" height="16">
-            <use xlink:href=""></use>
-          </svg>
-          Menu de opções
-        </a>
-      </li>
-      <li>
-        <a href="#" class="nav-link text-white">
-          <svg class="bi me-2" width="16" height="16">
-            <use xlink:href="#table"></use>
-          </svg>
-          Respostas
-        </a>
-      </li>
-      <li>
-        <a href="#" class="nav-link text-white">
-          <svg class="bi me-2" width="16" height="16">
-            <use xlink:href="#grid"></use>
-          </svg>
-            Agendar mensagem
-        </a>
+      <!-- Submenu com collapse -->
+
+      <ul class="list-unstyled">
+        <li>
+          <a
+            class="collapsed d-block text-decoration-none bi bi-chat"
+            data-bs-toggle="collapse"
+            href="#menu-collapse"
+            role="button"
+            aria-expanded="false"
+            aria-controls="menu-collapse"
+          >
+            Menu de opções
+          </a>
+
+          <div class="collapse" id="menu-collapse">
+            <ul class="list-unstyled ms-3">
+              <li
+                @click="$emit('navigate', 'OptionsForm')"
+                class="cursor-pointer"
+              >
+                <i class="bi bi-plus m-1"></i>Novo
+              </li>
+              <li @click="$emit('navigate', 'CrudForm')" class="cursor-pointer">
+                <i class="bi bi-eye m-1"></i>Ver
+              </li>
+            </ul>
+          </div>
+        </li>
+      </ul>
+
+      <li class="nav-item" @click="$emit('navigate', 'ScheduleMessage')">
+        <i class="bi bi-clock"></i> Agendar mensagem
       </li>
       <li>
         <a href="#" class="nav-link text-white">
           <svg class="bi me-2" width="16" height="16">
             <use xlink:href="#people-circle"></use>
           </svg>
-          
         </a>
       </li>
     </ul>
@@ -78,10 +86,8 @@ const count = ref(0);
           height="32"
           class="rounded-circle me-2"
         />
-        <strong>mdo</strong>
+        <strong>Squidev</strong>
       </a>
     </div>
   </div>
 </template>
-
-<style scoped></style>
