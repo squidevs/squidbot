@@ -5,7 +5,7 @@
   left: 0;
   height: 100vh; /* Altura total da viewport */
   width: 280px; /* Largura fixa */
-  background-color: #343a40; /* Cor de fundo */
+  background-color: #002447; /* Cor de fundo */
   color: white;
   display: flex;
   flex-direction: column;

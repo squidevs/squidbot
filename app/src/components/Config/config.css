@@ -1,36 +1,15 @@
-.layout {
-  display: flex;
-}
-
-
-.sidebar h2 {
-  color: #fff;
-}
-
-.sidebar ul {
-  list-style: none;
-  padding: 0;
-}
-
-.sidebar li {
-  margin: 10px 0;
-  cursor: pointer;
-}
-
-.sidebar li:hover {
-  text-decoration: underline;
-}
-
 .control-panel {
-  flex: 1;
   display: flex;
   justify-content: space-between;
-  padding: 20px;
+  padding: 30px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  gap: 40px;
 }
 
 .left-panel {
   flex: 1;
-  margin-right: 20px;
 }
 
 .right-panel {
@@ -38,10 +17,99 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
 }
 
-.success-message {
-  color: green;
-  font-weight: bold;
+.qr-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin: 20px 0;
+  perspective: 1000px;
+}
+
+.qr-code {
+  max-width: 300px;
+  width: 100%;
+  height: auto;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 15px;
+  background: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.qr-code:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.placeholder-box {
+  width: 300px;
+  height: 300px;
+  border: 2px dashed #ddd;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  background-color: #f9f9f9;
+  transition: all 0.3s ease;
+}
+
+.placeholder-box.success {
+  border: none;
+  background-color: #e8f5e9;
+  color: #1b5e20;
+}
+
+.placeholder-box i {
+  margin-bottom: 15px;
+  transition: transform 0.3s ease;
+}
+
+.placeholder-box:hover i {
+  transform: scale(1.1);
+}
+
+.placeholder-box p {
+  margin-top: 15px;
+  text-align: center;
+  font-size: 1.1em;
+}
+
+.alert {
+  width: 100%;
+  max-width: 300px;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border-radius: 8px;
+  border: none;
+}
+
+.alert-info {
+  background-color: #e3f2fd;
+  color: #0d47a1;
+}
+
+.alert-danger {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.form-check {
+  margin-bottom: 1.5rem;
+}
+
+.btn-primary {
+  padding: 0.75rem 1.5rem;
+  font-size: 1.1em;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }

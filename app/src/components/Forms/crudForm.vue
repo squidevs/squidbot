@@ -1,10 +1,10 @@
 <template>
   <div class="container py-4">
-    <h2 class="mb-3">Gerenciamento de Itens</h2>
+    <h2 class="mb-3">Gerenciamento de Respostas do ChatBot</h2>
 
     <!-- Botão de Adicionar -->
-    <button class="btn btn-success rounded-pill px-2 m-1 " @click="$emit('navigate', 'OptionsForm')">
-      <i class="bi bi-plus-circle"></i> Adicionar Item
+    <button class="btn btn-success rounded-pill px-2 m-1" @click="$emit('navigate', 'GerenciadorRespostas')">
+      <i class="bi bi-plus-circle"></i> Adicionar Resposta
     </button>
 
     <!-- Tabela de Listagem -->
@@ -12,73 +12,80 @@
       <table class="table table-bordered align-middle">
         <thead class="table-light">
           <tr>
-            <th>ID</th>
-            <th>Nome</th>
-            <th>Descrição</th>
+            <th>Acionador</th>
+            <th>Resposta</th>
+            <th>Tipo</th>
             <th class="text-center">Status</th>
             <th class="text-center">Ações</th>
           </tr>
         </thead>
         <tbody>
-          <tr class="text-start" v-for="item in itens" :key="item.id">
-            <td>{{ item.id }}</td>
-            <td>{{ item.nome }}</td>
-            <td>{{ item.descricao }}</td>
-            <td class="text-center">
-              <button class="btn btn-sm rounded-pill px-4 m-1" :class="item.ativo ? 'btn-success' : 'btn-secondary'" @click="toggleStatus(item)">{{ item.ativo ? 'Ativo' : 'Inativo' }}</button>
+          <tr class="text-start" v-for="item in respostas" :key="item.id">
+            <td>{{ item.acionador }}</td>
+            <td>{{ item.resposta }}</td>
+            <td>
+              {{ getTipoResposta(item) }}
             </td>
             <td class="text-center">
-              <button class="btn btn-sm btn-info rounded-pill px-2 m-1" @click="abrirDetalhes(item)"><i class="bi bi-eye"></i></button>
-              <button class="btn btn-sm btn-primary rounded-pill px-2 m-1" @click="abrirFormulario(item)"><i class="bi bi-pencil"></i></button>
-              <button class="btn btn-sm btn-danger rounded-pill px-2 m-1" @click="excluirItem(item.id)"><i class="bi bi-trash"></i></button>
+              <button 
+                class="btn btn-sm rounded-pill px-4 m-1" 
+                :class="item.ativo ? 'btn-success' : 'btn-secondary'" 
+                @click="toggleStatus(item)"
+              >
+                {{ item.ativo ? 'Ativo' : 'Inativo' }}
+              </button>
+            </td>
+            <td class="text-center">
+              <button class="btn btn-sm btn-info rounded-pill px-2 m-1" @click="abrirDetalhes(item)">
+                <i class="bi bi-eye"></i>
+              </button>
+              <button class="btn btn-sm btn-primary rounded-pill px-2 m-1" @click="abrirFormulario(item)">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button class="btn btn-sm btn-danger rounded-pill px-2 m-1" @click="excluirResposta(item.id)">
+                <i class="bi bi-trash"></i>
+              </button>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
-
-    <!-- Modal de Formulário -->
-    <div class="modal fade" id="modalFormulario" tabindex="-1" aria-labelledby="modalFormularioLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="modalFormularioLabel">{{ itemEditando ? 'Editar Item' : 'Adicionar Item' }}</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <form @submit.prevent="salvarItem">
-              <div class="mb-3">
-                <label for="nome" class="form-label">Nome</label>
-                <input type="text" id="nome" v-model="form.nome" class="form-control" required />
-              </div>
-              <div class="mb-3">
-                <label for="descricao" class="form-label">Descrição</label>
-                <textarea id="descricao" v-model="form.descricao" class="form-control" rows="3" required></textarea>
-              </div>
-              <div class="form-check form-switch mb-3">
-                <input class="form-check-input" type="checkbox" id="ativo" v-model="form.ativo" />
-                <label class="form-check-label" for="ativo">Ativo</label>
-              </div>
-              <button type="submit" class="btn btn-primary">Salvar</button>
-            </form>
-          </div>
+   
+    <!-- Lista de Respostas -->
+    <!-- <div class="lista-respostas">
+      <h3>Respostas Cadastradas</h3>
+      <div v-for="item in respostas" :key="item.id" class="resposta-item">
+        <div class="resposta-conteudo">
+          <strong>Acionador:</strong> {{ item.acionador }}
+          <br />
+          <strong>Resposta:</strong> {{ item.resposta }}
+        </div>
+        <div class="resposta-acoes">
+          <button @click="editarResposta(item)" class="btn btn-sm btn-primary rounded-circle m-1"><i class="bi bi-pencil"></i></button>
+          <button @click="excluirResposta(item.id)" class="btn btn-sm btn-danger rounded-circle m-1"><i class="bi bi-trash"></i></button>
         </div>
       </div>
-    </div>
-
+    </div> -->
     <!-- Modal de Detalhes -->
-    <div class="modal fade" id="modalDetalhes" tabindex="-1" aria-labelledby="modalDetalhesLabel" aria-hidden="true">
+    <div class="modal fade" id="modalDetalhes" tabindex="-1">
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="modalDetalhesLabel">Detalhes do Item</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <h5 class="modal-title">Detalhes da Resposta</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
-          <div class="modal-body">
-            <p><strong>ID:</strong> {{ itemDetalhes?.id }}</p>
-            <p><strong>Nome:</strong> {{ itemDetalhes?.nome }}</p>
-            <p><strong>Descrição:</strong> {{ itemDetalhes?.descricao }}</p>
-            <p><strong>Status:</strong> {{ itemDetalhes?.ativo ? 'Ativo' : 'Inativo' }}</p>
+          <div class="modal-body" v-if="itemDetalhes">
+            <p><strong>Acionador:</strong> {{ itemDetalhes.acionador }}</p>
+            <p><strong>Resposta:</strong> {{ itemDetalhes.resposta }}</p>
+            <p><strong>Status:</strong> {{ itemDetalhes.ativo ? 'Ativo' : 'Inativo' }}</p>
+            <p><strong>Mostra Digitando:</strong> {{ itemDetalhes.mostraDigitando ? 'Sim' : 'Não' }}</p>
+            <p><strong>Mostra Gravando:</strong> {{ itemDetalhes.mostraGravando ? 'Sim' : 'Não' }}</p>
+            <p><strong>Tempo de Delay:</strong> {{ itemDetalhes.tempoDelay }}ms</p>
+            <p v-if="itemDetalhes.arquivoAudio"><strong>Áudio:</strong> {{ itemDetalhes.arquivoAudio }}</p>
+            <p v-if="itemDetalhes.arquivoPdf"><strong>PDF:</strong> {{ itemDetalhes.arquivoPdf }}</p>
+            <p v-if="itemDetalhes.arquivoImagem"><strong>Imagem:</strong> {{ itemDetalhes.arquivoImagem }}</p>
+            <p v-if="itemDetalhes.arquivoSticker"><strong>Sticker:</strong> {{ itemDetalhes.arquivoSticker }}</p>
+            <p v-if="itemDetalhes.link"><strong>Link:</strong> {{ itemDetalhes.link }}</p>
           </div>
         </div>
       </div>
@@ -86,150 +93,133 @@
   </div>
 </template>
 
-<script>
-import { ref, onMounted } from 'vue';
-import Option from "./OptionsForm/optionsForm.vue";
-
-export default {
-  name: 'CrudForm',
-  components: {
-    Option,
-  },
-  setup() {
-    const itens = ref([
-      { id: 1, nome: 'Item 1', descricao: 'Descrição do Item 1', ativo: true },
-      { id: 2, nome: 'Item 2', descricao: 'Descrição do Item 2', ativo: false },
-    ]);
-
-    const form = ref({ id: null, nome: '', descricao: '', ativo: false });
-    const itemEditando = ref(null);
-    const itemDetalhes = ref(null);
-
-    const abrirFormulario = (item = null) => {
-      if (item) {
-        form.value = { ...item };
-        itemEditando.value = item;
-      } else {
-        form.value = { id: null, nome: '', descricao: '', ativo: false };
-        itemEditando.value = null;
-      }
-      const modal = new bootstrap.Modal(document.getElementById('modalFormulario'));
-      modal.show();
-    };
-
-    const abrirDetalhes = (item) => {
-      itemDetalhes.value = item;
-      const modal = new bootstrap.Modal(document.getElementById('modalDetalhes'));
-      modal.show();
-    };
-
-    const salvarItem = () => {
-      if (itemEditando.value) {
-        const index = itens.value.findIndex((i) => i.id === itemEditando.value.id);
-        if (index !== -1) itens.value[index] = { ...form.value };
-      } else {
-        const novoId = itens.value.length ? Math.max(...itens.value.map((i) => i.id)) + 1 : 1;
-        itens.value.push({ ...form.value, id: novoId });
-      }
-      const modal = bootstrap.Modal.getInstance(document.getElementById('modalFormulario'));
-      modal.hide();
-    };
-
-    const excluirItem = (id) => {
-      itens.value = itens.value.filter((item) => item.id !== id);
-    };
-
-    const toggleStatus = (item) => {
-      item.ativo = !item.ativo;
-    };
-
-    onMounted(() => {
-      if (!window.bootstrap) {
-        console.error('Bootstrap JS não está carregado. Verifique a inclusão do arquivo.');
-      } else {
-        console.log('Bootstrap JS carregado com sucesso.');
-      }
-    });
-
-    return {
-      itens,
-      form,
-      itemEditando,
-      itemDetalhes,
-      abrirFormulario,
-      abrirDetalhes,
-      salvarItem,
-      excluirItem,
-      toggleStatus,
-    };
-  },
-};
-</script>
-
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted } from 'vue';
 import * as bootstrap from 'bootstrap';
+import './crudForm.css';
+import * as respostasService from '../../services/respostasService';
 
-const itens = ref([
-  { id: 1, nome: "Item 1", descricao: "Descrição do Item 1", ativo: true },
-  { id: 2, nome: "Item 2", descricao: "Descrição do Item 2", ativo: false },
-]);
-
-const form = ref({ id: null, nome: "", descricao: "", ativo: false });
-const itemEditando = ref(null);
+const respostas = ref([]);
 const itemDetalhes = ref(null);
 
-const abrirFormulario = (item = null) => {
-  if (item) {
-    form.value = { ...item };
-    itemEditando.value = item;
-  } else {
-    form.value = { id: null, nome: "", descricao: "", ativo: false };
-    itemEditando.value = null;
-  }
-  const modalFormulario = new bootstrap.Modal(document.getElementById("modalFormulario"));
-  modalFormulario.show();
-};
+// Carregar respostas
+function carregarRespostas() {
+  respostas.value = respostasService.listarRespostas();
+}
 
-const abrirDetalhes = (item) => {
+// Determinar tipo de resposta
+function getTipoResposta(item) {
+  if (item.arquivoAudio) return 'Áudio';
+  if (item.arquivoPdf) return 'PDF';
+  if (item.arquivoImagem) return 'Imagem';
+  if (item.arquivoSticker) return 'Sticker';
+  if (item.link) return 'Link';
+  if (item.temBotoes) return 'Botões';
+  return 'Texto';
+}
+
+// Abrir modal de detalhes
+async function abrirDetalhes(item) {
   itemDetalhes.value = item;
-  const modalDetalhes = new bootstrap.Modal(document.getElementById("modalDetalhes"));
-  modalDetalhes.show();
-};
+  const modal = new bootstrap.Modal(document.getElementById('modalDetalhes'));
+  modal.show();
+}
 
-const salvarItem = () => {
-  if (itemEditando.value) {
-    const index = itens.value.findIndex((i) => i.id === itemEditando.value.id);
-    if (index !== -1) itens.value[index] = { ...form.value };
-  } else {
-    const novoId = itens.value.length ? Math.max(...itens.value.map((i) => i.id)) + 1 : 1;
-    itens.value.push({ ...form.value, id: novoId });
+// Abrir formulário de edição
+function abrirFormulario(item) {
+  emit('navigate', 'OptionsForm', item);
+}
+
+// Toggle status ativo/inativo
+async function toggleStatus(item) {
+  try {
+    const novoStatus = !item.ativo;
+    await respostasService.atualizarResposta({ ...item, ativo: novoStatus });
+    carregarRespostas();
+  } catch (error) {
+    alert('Erro ao alterar status: ' + error.message);
   }
-  const modalFormulario = bootstrap.Modal.getInstance(document.getElementById("modalFormulario"));
-  if (modalFormulario) {
-    modalFormulario.hide();
+}
+
+// Excluir resposta
+async function excluirResposta(id) {
+  if (!confirm('Tem certeza que deseja excluir esta resposta?')) {
+    return;
   }
-};
 
-const excluirItem = (id) => {
-  itens.value = itens.value.filter((item) => item.id !== id);
-};
+  try {
+    await respostasService.excluirResposta(id);
+    carregarRespostas();
+  } catch (error) {
+    alert('Erro ao excluir resposta: ' + error.message);
+  }
+}
 
-const toggleStatus = (item) => {
-  item.ativo = !item.ativo;
-};
-
+// Carregar dados iniciais
 onMounted(() => {
-  if (!window.bootstrap) {
-    console.error("Bootstrap JS não está carregado. Verifique a inclusão do arquivo.");
-  } else {
-    console.log("Bootstrap JS carregado com sucesso.");
-  }
+  carregarRespostas();
 });
+
+const emit = defineEmits(['navigate']);
 </script>
 
 <style scoped>
-.table {
-  margin-top: 20px;
+.table th {
+  font-weight: 600;
+}
+
+.table td {
+  vertical-align: middle;
+}
+
+.btn-group-sm > .btn,
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  border-radius: 0.2rem;
+}
+
+/* Estilo para ícones nos botões */
+.btn i {
+  margin-right: 0.25rem;
+}
+
+/* Estilo para status badge */
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+}
+
+/* Estilo para o modal de detalhes */
+.modal-body strong {
+  color: #495057;
+}
+
+.modal-body p {
+  margin-bottom: 0.5rem;
+}
+
+/* Animações para transições de estado */
+.table tr {
+  transition: background-color 0.2s ease;
+}
+
+.btn {
+  transition: all 0.2s ease;
+}
+
+/* Responsividade para telas pequenas */
+@media (max-width: 768px) {
+  .table-responsive {
+    margin-bottom: 1rem;
+    border: 0;
+  }
+
+  .btn-group-sm > .btn,
+  .btn-sm {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.8rem;
+  }
 }
 </style>

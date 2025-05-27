@@ -4,8 +4,11 @@
       <Sidebar @navigate="setPage" />
     </div>
     <div class="col-9">
-      <!-- Componente para componentes -->
-      <component :is="currentComponent" @navigate="setPage" />
+      <component 
+        :is="currentComponent" 
+        :resposta-para-editar="currentEditItem"
+        @navigate="setPage" 
+      />
     </div>
   </div>
 </template>
@@ -17,6 +20,7 @@ import Config from "./components/Config/config.vue";
 import CrudForm from "./components/Forms/crudForm.vue";
 import OptionsForm from './components/Forms/OptionsForm/optionsForm.vue';
 import ScheduleMessage from './components/ScheduleMessage/ScheduleMessage.vue';
+import GerenciadorRespostas from './components/Config/GerenciadorRespostas.vue';
 
 export default {
   name: "App",
@@ -26,18 +30,33 @@ export default {
     CrudForm,
     OptionsForm,
     ScheduleMessage,
+    GerenciadorRespostas,
   },
   setup() {
     const currentComponent = ref("Config");
+    const currentEditItem = ref(null);
 
-    const setPage = (pageName) => {
+    const setPage = (pageName, editItem = null) => {
       currentComponent.value = pageName;
+      currentEditItem.value = editItem;
     };
 
     return {
       currentComponent,
+      currentEditItem,
       setPage,
     };
   },
 };
 </script>
+
+<style>
+.row {
+  margin: 0;
+  height: 100vh;
+}
+
+.col-9 {
+  padding: 2rem;
+}
+</style>
