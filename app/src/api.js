@@ -7,7 +7,7 @@ import { WebSocketServer } from 'ws';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 import http from 'http';
-import qrcode from 'qrcode'; // Importa a biblioteca qrcode
+import qrcode from 'qrcode';
 
 // Obtenha o diretório atual para uso com caminhos de arquivo
 const __filename = fileURLToPath(import.meta.url);
@@ -28,7 +28,6 @@ function lerConfig() {
         return JSON.parse(fs.readFileSync(configPath, 'utf8'));
     } catch (error) {
         console.error('Erro ao ler o arquivo de configuração, criando um novo:', error);
-        // Retorna uma configuração padrão se o arquivo não existir ou for inválido
         return {
             mensagensParaGrupos: false,
             mostrarDigitando: false,
@@ -57,18 +56,50 @@ function salvarConfig(config) {
  */
 async function enviarMidia(msg, caminho, legenda) {
     if (!caminho) return;
-    const filePath = path.join(__dirname, caminho);
+    
+    // Verifica se o caminho já é absoluto, se não, constrói o caminho absoluto
+    const filePath = path.isAbsolute(caminho) ? caminho : path.join(__dirname, caminho);
+    
+    console.log('Tentando enviar mídia:', {
+        caminhoRecebido: caminho,
+        caminhoAbsoluto: filePath,
+        existe: fs.existsSync(filePath)
+    });
+
     try {
         if (fs.existsSync(filePath)) {
             const media = await MessageMedia.fromFilePath(filePath);
             await msg.reply(media, undefined, { caption: legenda || '' });
         } else {
             console.warn('Arquivo de mídia não encontrado:', filePath);
-            if (legenda) await msg.reply(legenda); // Envia a legenda mesmo sem a mídia
+            if (legenda) await msg.reply(legenda);
         }
     } catch (e) {
         console.error('Erro ao enviar mídia:', e);
-        if (legenda) await msg.reply(legenda); // Em caso de erro, tenta enviar a legenda
+        if (legenda) await msg.reply(legenda);
+    }
+}
+
+/**
+ * Envia botões interativos como resposta
+ * @param {Message} msg Objeto da mensagem recebida
+ * @param {string} texto Texto a ser exibido com os botões
+ * @param {Array} botoes Array de objetos com {texto, valor}
+ */
+async function enviarBotoes(msg, texto, botoes) {
+    try {
+        const buttons = botoes.map(btn => ({
+            body: btn.texto,
+            id: btn.valor
+        }));
+        
+        await client.sendMessage(msg.from, {
+            text: texto,
+            buttons: buttons
+        });
+    } catch (e) {
+        console.error('Erro ao enviar botões:', e);
+        await msg.reply('❌ Ocorreu um erro ao enviar as opções.');
     }
 }
 
@@ -85,28 +116,18 @@ async function enviarMidia(msg, caminho, legenda) {
  */
 function montarRespostas(tipo, resposta, imagem, gif, pdf, audio, sticker) {
     const respostas = [];
-    if (tipo === 'multipla') {
-        // Adiciona a resposta de texto primeiro, se existir
-        if (resposta) respostas.push({ tipo: 'texto', conteudo: resposta });
-        // Adiciona as mídias individualmente
-        if (imagem) respostas.push({ tipo: 'media', caminho: imagem, legenda: resposta });
-        if (gif) respostas.push({ tipo: 'media', caminho: gif, legenda: resposta });
-        if (pdf) respostas.push({ tipo: 'media', caminho: pdf, legenda: resposta });
-        if (audio) respostas.push({ tipo: 'media', caminho: audio }); // Áudio geralmente não tem legenda visível
-        if (sticker) respostas.push({ tipo: 'media', caminho: sticker }); // Sticker também
-    } else { // Tipo 'simples' ou qualquer outro
-        if (imagem || gif || pdf) {
-            const caminho = imagem || gif || pdf;
-            respostas.push({ tipo: 'media', caminho, legenda: resposta });
-        } else if (audio || sticker) {
-            // Para áudio/sticker em resposta simples, se houver texto, envia o texto e depois a mídia
-            if (resposta) respostas.push({ tipo: 'texto', conteudo: resposta });
-            const caminho = audio || sticker;
-            respostas.push({ tipo: 'media', caminho });
-        } else if (resposta) {
-            respostas.push({ tipo: 'texto', conteudo: resposta });
-        }
+    
+    // Sempre adiciona o texto primeiro se existir
+    if (resposta) {
+        respostas.push({ tipo: 'texto', conteudo: resposta });
     }
+    
+    // Adiciona mídias se existirem
+    if (imagem) respostas.push({ tipo: 'media', caminho: imagem, legenda: '' });
+    if (pdf) respostas.push({ tipo: 'media', caminho: pdf, legenda: '' });
+    if (audio) respostas.push({ tipo: 'media', caminho: audio, legenda: '' });
+    if (sticker) respostas.push({ tipo: 'media', caminho: sticker, legenda: '' });
+    
     return respostas;
 }
 
@@ -116,9 +137,9 @@ function montarRespostas(tipo, resposta, imagem, gif, pdf, audio, sticker) {
  * @returns {boolean} True se deve responder, false caso contrário.
  */
 function deveResponderMensagem(chat) {
-    const currentConfig = lerConfig(); // Lê a configuração mais recente
-    if (!chat.isGroup) return true; // Sempre responde a mensagens privadas
-    return currentConfig.mensagensParaGrupos; // Responde a grupos apenas se permitido na config
+    const currentConfig = lerConfig();
+    if (!chat.isGroup) return true;
+    return currentConfig.mensagensParaGrupos;
 }
 
 // =========================
@@ -130,24 +151,29 @@ const wss = new WebSocketServer({ server });
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-app.use(express.json()); // Para parsear JSON no corpo das requisições
-app.use(cors()); // Permite requisições de diferentes origens (importante para o frontend)
+app.use(express.json());
+app.use(cors());
 
 // Estado global do bot
 let client = null;
-let qrCode = null; // Armazena o QR code em base64
-let connectionStatus = 'disconnected'; // 'disconnected', 'connecting', 'connected'
-let currentConfig = lerConfig(); // Carrega a configuração inicial
+let qrCode = null;
+let connectionStatus = 'disconnected';
+let currentConfig = lerConfig();
+
+// Verificação inicial de pastas e arquivos
+const assetsPath = path.join(__dirname, 'assets');
+if (!fs.existsSync(assetsPath)) {
+    console.error('ATENÇÃO: Pasta assets não encontrada!');
+    console.error('Caminho esperado:', assetsPath);
+    console.error('Diretório atual:', __dirname);
+} else {
+    console.log('Pasta assets encontrada em:', assetsPath);
+}
 
 // =========================
 // Funções de Comunicação WebSocket
 // =========================
 
-/**
- * Envia uma atualização para todos os clientes WebSocket conectados.
- * @param {string} type O tipo da mensagem (ex: 'qr', 'status').
- * @param {any} data Os dados a serem enviados.
- */
 function broadcastUpdate(type, data) {
     const message = JSON.stringify({ type, data });
     wss.clients.forEach(client => {
@@ -161,27 +187,19 @@ function broadcastUpdate(type, data) {
 // Inicialização do WhatsApp Bot
 // =========================
 
-/**
- * Inicializa o cliente WhatsApp.
- * Cria uma nova instância do cliente, configura os listeners de eventos
- * e tenta inicializar a sessão.
- * @returns {Promise<boolean>} True se a inicialização foi bem-sucedida, false caso contrário.
- */
 async function initWhatsApp() {
     try {
         console.log('Iniciando WhatsApp...');
         connectionStatus = 'connecting';
-        // Limpa o QR code anterior ao tentar conectar novamente
         qrCode = null; 
-        broadcastUpdate('status', 'connecting'); // Informa o frontend que está conectando
+        broadcastUpdate('status', 'connecting');
 
-        // Cria uma nova instância do cliente WhatsApp
         client = new Client({
             authStrategy: new LocalAuth({
-                dataPath: path.join(__dirname, 'tokens/whatsapp-session') // Caminho para armazenar a sessão
+                dataPath: path.join(__dirname, 'tokens/whatsapp-session')
             }),
             puppeteer: {
-                headless: true, // Executa o navegador em modo headless (sem interface gráfica)
+                headless: true,
                 args: [
                     '--no-sandbox',
                     '--disable-setuid-sandbox',
@@ -192,60 +210,53 @@ async function initWhatsApp() {
             }
         });
 
-        // Listener para o evento 'qr': quando um novo QR code é gerado
-        client.on('qr', async (qrData) => { // Renomeado 'qr' para 'qrData' para clareza
-            console.log('Novo QR Code de dados recebido:', qrData);
+        client.on('qr', async (qrData) => {
+            console.log('Novo QR Code recebido');
             try {
-                // Converte a string de dados do QR Code em uma URL de dados base64 da imagem PNG
                 const qrCodeImage = await qrcode.toDataURL(qrData);
-                console.log('QR Code imagem base64 gerada. Tamanho:', qrCodeImage.length);
-                qrCode = qrCodeImage; // Armazena a URL de dados completa
-                broadcastUpdate('qr', qrCodeImage); // Envia a URL de dados completa para o frontend
+                qrCode = qrCodeImage;
+                broadcastUpdate('qr', qrCodeImage);
             } catch (err) {
-                console.error('Erro ao gerar imagem do QR Code:', err);
-                qrCode = null; // Garante que o QR code esteja nulo em caso de erro
-                broadcastUpdate('qr', null); // Envia nulo para o frontend para indicar erro
+                console.error('Erro ao gerar QR Code:', err);
+                qrCode = null;
+                broadcastUpdate('qr', null);
             }
         });
 
-        // Listener para o evento 'ready': quando o cliente está pronto e conectado
         client.on('ready', () => {
             console.log('Cliente WhatsApp pronto');
             connectionStatus = 'connected';
-            broadcastUpdate('status', 'connected'); // Informa o frontend que está conectado
-            qrCode = null; // Limpa o QR code após a conexão bem-sucedida
+            broadcastUpdate('status', 'connected');
+            qrCode = null;
         });
 
-        // Listener para o evento 'message': quando uma nova mensagem é recebida
         client.on('message', async (msg) => {
             const chat = await msg.getChat();
-            // Verifica se deve responder à mensagem (ex: ignorar grupos se configurado)
-            if (!deveResponderMensagem(chat)) {
-                return;
-            }
+            if (!deveResponderMensagem(chat)) return;
 
-            currentConfig = lerConfig(); // Recarrega a configuração para garantir que esteja atualizada
+            currentConfig = lerConfig();
             const texto = msg.body.toLowerCase().trim();
             const contato = await msg.getContact();
             const nome = contato.pushname || contato.number;
             const telefone = msg.from.replace('@c.us', '');
             console.log(`[MSG RECEBIDA] ${nome} (${telefone}): ${texto}`);
 
-            // Log das mensagens recebidas
+            // Log da mensagem
             currentConfig.logMensagens = currentConfig.logMensagens || [];
             currentConfig.logMensagens.push(`[${new Date().toLocaleString()}] ${nome} (${telefone}): ${texto}`);
-            // Limita o log a 200 mensagens para não sobrecarregar o arquivo
-            if (currentConfig.logMensagens.length > 200) currentConfig.logMensagens = currentConfig.logMensagens.slice(-200);
+            if (currentConfig.logMensagens.length > 200) {
+                currentConfig.logMensagens = currentConfig.logMensagens.slice(-200);
+            }
             salvarConfig(currentConfig);
 
-            // Simula "digitando" ou "gravando áudio" se configurado
+            // Simula "digitando" ou "gravando"
             if (currentConfig.mostrarDigitando) {
                 await chat.sendStateTyping();
             } else if (currentConfig.mostrarGravandoAudio) {
                 await chat.sendStateRecording();
             }
 
-            // Processa a resposta baseada nas opções do menu
+            // Processa a resposta
             try {
                 const opcao = currentConfig.opcoesMenu.find(o =>
                     o.acionador &&
@@ -253,58 +264,58 @@ async function initWhatsApp() {
                 );
 
                 if (opcao) {
-                    const respostas = montarRespostas(
-                        opcao.tipoResposta,
-                        opcao.resposta,
-                        opcao.imagem,
-                        opcao.gif,
-                        opcao.pdf,
-                        opcao.audio,
-                        opcao.sticker
-                    );
+                    // Se houver botões, envia eles
+                    if (opcao.temBotoes && opcao.opcoesBotoes?.length > 0) {
+                        await enviarBotoes(msg, opcao.resposta, opcao.opcoesBotoes);
+                    } else {
+                        const respostas = montarRespostas(
+                            'simples',
+                            opcao.resposta,
+                            opcao.arquivoImagem,
+                            '',
+                            opcao.arquivoPdf,
+                            opcao.arquivoAudio,
+                            opcao.arquivoSticker
+                        );
 
-                    for (const resposta of respostas) {
-                        if (resposta.tipo === 'media') {
-                            await enviarMidia(msg, resposta.caminho, resposta.legenda);
-                        } else if (resposta.tipo === 'texto') {
-                            await msg.reply(resposta.conteudo);
+                        for (const resposta of respostas) {
+                            if (resposta.tipo === 'media') {
+                                await enviarMidia(msg, resposta.caminho, resposta.legenda);
+                            } else if (resposta.tipo === 'texto') {
+                                await msg.reply(resposta.conteudo);
+                            }
                         }
                     }
+                    
+                    // Se houver link, envia como mensagem separada
+                    if (opcao.link) {
+                        await msg.reply(`🔗 Link: ${opcao.link}`);
+                    }
                 } else {
-                    // Resposta padrão se nenhuma opção for encontrada
                     await msg.reply(currentConfig.mensagemDefault);
                 }
             } catch (error) {
                 console.error('Erro ao processar mensagem:', error);
-                try {
-                    await msg.reply('❌ Desculpe, ocorreu um erro ao processar sua solicitação.');
-                } catch (e) {
-                    console.error('Erro ao enviar mensagem de erro:', e);
-                }
+                await msg.reply('❌ Desculpe, ocorreu um erro ao processar sua solicitação.');
             } finally {
-                // Limpa o estado de "digitando" ou "gravando"
                 await chat.clearState();
             }
         });
 
-        // Listener para o evento 'disconnected': quando o cliente é desconectado
         client.on('disconnected', (reason) => {
             console.log('Cliente desconectado:', reason);
             connectionStatus = 'disconnected';
-            broadcastUpdate('status', 'disconnected'); // Informa o frontend sobre a desconexão
-            qrCode = null; // Limpa o QR code ao desconectar
-            // Opcional: Tentar inicializar novamente após um tempo, se desejar reconexão automática
-            // setTimeout(() => initWhatsApp(), 5000);
+            broadcastUpdate('status', 'disconnected');
+            qrCode = null;
         });
 
-        await client.initialize(); // Inicia o cliente WhatsApp
+        await client.initialize();
         console.log('Cliente WhatsApp iniciado com sucesso');
-
         return true;
     } catch (error) {
         console.error('Erro ao inicializar WhatsApp:', error);
         connectionStatus = 'disconnected';
-        broadcastUpdate('status', 'disconnected'); // Informa o frontend sobre o erro
+        broadcastUpdate('status', 'disconnected');
         return false;
     }
 }
@@ -315,7 +326,6 @@ async function initWhatsApp() {
 wss.on('connection', (ws) => {
     console.log('Novo cliente WebSocket conectado');
 
-    // Envia o estado atual (QR code ou status de conexão) para o novo cliente
     if (qrCode) {
         ws.send(JSON.stringify({ type: 'qr', data: qrCode }));
     }
@@ -329,23 +339,13 @@ wss.on('connection', (ws) => {
 // =========================
 // Rotas da API HTTP
 // =========================
-
-/**
- * Rota para obter o status atual da conexão do WhatsApp.
- * Retorna se está conectado e se há um QR code disponível.
- */
 app.get('/status', (req, res) => {
     res.json({
         status: connectionStatus,
-        hasQR: !!qrCode // Retorna true se qrCode não for null ou undefined
+        hasQR: !!qrCode
     });
 });
 
-/**
- * Rota para iniciar o processo de conexão do WhatsApp.
- * Se já estiver conectado ou conectando, retorna o status atual.
- * Caso contrário, tenta inicializar o cliente WhatsApp.
- */
 app.post('/connect', async (req, res) => {
     console.log('Requisição de conexão recebida');
 
@@ -355,22 +355,18 @@ app.post('/connect', async (req, res) => {
         }
 
         if (connectionStatus === 'connecting') {
-            // Se já estiver conectando e um QR code já foi gerado, retorna-o
             if (qrCode) {
                 return res.json({ qrCode: qrCode, status: 'waiting_scan', message: 'Aguardando escaneamento do QR code.' });
             }
             return res.json({ status: 'connecting', message: 'Já está conectando, aguarde o QR code ou a conexão.' });
         }
 
-        // Inicia o processo de conexão se não estiver conectado ou conectando
         const success = await initWhatsApp();
 
         if (success) {
-            // Se a inicialização foi bem-sucedida e um QR code foi gerado imediatamente
             if (qrCode) {
                 res.json({ qrCode: qrCode, status: 'waiting_scan', message: 'QR code gerado! Escaneie com seu WhatsApp.' });
             } else {
-                // Se a inicialização foi bem-sucedida, mas o QR code ainda não chegou (ou já conectou)
                 res.json({ status: connectionStatus, message: 'WhatsApp inicializado com sucesso, aguardando QR code ou conexão.' });
             }
         } else {
@@ -385,14 +381,9 @@ app.post('/connect', async (req, res) => {
     }
 });
 
-/**
- * Rota para salvar os dados de configuração (opções de menu, etc.).
- * Recebe o objeto de configuração no corpo da requisição.
- */
 app.post('/save-data', async (req, res) => {
     try {
-        // Assume que o corpo da requisição contém as opções de menu e outras configurações
-        const newConfig = { ...lerConfig(), ...req.body }; // Mescla com a config existente
+        const newConfig = { ...lerConfig(), ...req.body };
         salvarConfig(newConfig);
         res.json({ success: true, message: 'Configuração salva com sucesso!' });
     } catch (error) {
@@ -404,9 +395,6 @@ app.post('/save-data', async (req, res) => {
     }
 });
 
-/**
- * Rota para obter todos os dados de configuração.
- */
 app.get('/data.json', (req, res) => {
     try {
         const config = lerConfig();
@@ -421,10 +409,15 @@ app.get('/data.json', (req, res) => {
 });
 
 // =========================
-// Inicialização do Servidor HTTP/WebSocket
+// Inicialização do Servidor
 // =========================
 server.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
-    // Opcional: Iniciar o WhatsApp automaticamente ao ligar o servidor
-    // initWhatsApp();
+    // Verifica arquivos na pasta assets ao iniciar
+    const dataJsonPath = path.join(__dirname, 'assets/data.json');
+    if (!fs.existsSync(dataJsonPath)) {
+        console.error('Arquivo data.json não encontrado na pasta assets!');
+    } else {
+        console.log('Arquivo data.json encontrado:', dataJsonPath);
+    }
 });
