@@ -2,9 +2,141 @@
   "mensagensParaGrupos": false,
   "opcoesMenu": [
     {
-      "id": 1748315149063,
+      "id": 1,
       "acionador": "1",
-      "resposta": "Oii vc escolheu 1",
+      "resposta": "Esta é uma resposta apenas com texto",
+      "pausarBot": false,
+      "mostraDigitando": true,
+      "mostraGravando": false,
+      "arquivoAudio": "",
+      "arquivoPdf": "catalogo.pdf",
+      "arquivoImagem": "",
+      "arquivoSticker": "",
+      "temBotoes": false,
+      "opcoesBotoes": [],
+      "tempoDelay": 1000,
+      "link": "",
+      "ativo": true
+    },
+    {
+      "id": 2,
+      "acionador": "2",
+      "resposta": "Aqui está uma imagem para você",
+      "pausarBot": false,
+      "mostraDigitando": true,
+      "mostraGravando": false,
+      "arquivoAudio": "",
+      "arquivoPdf": "",
+      "arquivoImagem": "logo.jpg",
+      "arquivoSticker": "",
+      "temBotoes": false,
+      "opcoesBotoes": [],
+      "tempoDelay": 2000,
+      "link": "",
+      "ativo": true
+    },
+    {
+      "id": 3,
+      "acionador": "3",
+      "resposta": "Escute este áudio",
+      "pausarBot": false,
+      "mostraDigitando": true,
+      "mostraGravando": false,
+      "arquivoAudio": "audio.mp3",
+      "arquivoPdf": "",
+      "arquivoImagem": "",
+      "arquivoSticker": "",
+      "temBotoes": false,
+      "opcoesBotoes": [],
+      "tempoDelay": 1500,
+      "link": "",
+      "ativo": true
+    },
+    {
+      "id": 4,
+      "acionador": "4",
+      "resposta": "Aqui vai um sticker",
+      "pausarBot": false,
+      "mostraDigitando": true,
+      "mostraGravando": false,
+      "arquivoAudio": "",
+      "arquivoPdf": "",
+      "arquivoImagem": "",
+      "arquivoSticker": "sticker.webp",
+      "temBotoes": false,
+      "opcoesBotoes": [],
+      "tempoDelay": 1000,
+      "link": "",
+      "ativo": true
+    },
+    {
+      "id": 5,
+      "acionador": "5",
+      "resposta": "Visite nosso site",
+      "pausarBot": false,
+      "mostraDigitando": true,
+      "mostraGravando": false,
+      "arquivoAudio": "",
+      "arquivoPdf": "",
+      "arquivoImagem": "",
+      "arquivoSticker": "",
+      "temBotoes": false,
+      "opcoesBotoes": [],
+      "tempoDelay": 1000,
+      "link": "https://www.squidev.com.br",
+      "ativo": true
+    },
+    {
+      "id": 6,
+      "acionador": "6",
+      "resposta": "Escolha uma opção:",
+      "pausarBot": false,
+      "mostraDigitando": true,
+      "mostraGravando": false,
+      "arquivoAudio": "",
+      "arquivoPdf": "",
+      "arquivoImagem": "",
+      "arquivoSticker": "",
+      "temBotoes": true,
+      "opcoesBotoes": [
+        {
+          "texto": "Opção A",
+          "valor": "A"
+        },
+        {
+          "texto": "Opção B",
+          "valor": "B"
+        },
+        {
+          "texto": "Opção C",
+          "valor": "C"
+        }
+      ],
+      "tempoDelay": 2000,
+      "link": "",
+      "ativo": true
+    },
+    {
+      "id": 7,
+      "acionador": "7",
+      "resposta": "Respostas automáticas desativadas",
+      "pausarBot": true,
+      "mostraDigitando": true,
+      "mostraGravando": false,
+      "arquivoAudio": "",
+      "arquivoPdf": "",
+      "arquivoImagem": "",
+      "arquivoSticker": "",
+      "temBotoes": false,
+      "opcoesBotoes": [],
+      "tempoDelay": 1000,
+      "link": "",
+      "ativo": true
+    },
+    {
+      "id": 8,
+      "acionador": "8",
+      "resposta": "Respostas automáticas ativadas",
       "pausarBot": false,
       "mostraDigitando": true,
       "mostraGravando": false,
@@ -19,20 +151,20 @@
       "ativo": true
     },
     {
-      "id": 1748317329263,
-      "acionador": "2",
-      "resposta": "segue nossa imagem",
+      "id": 9,
+      "acionador": "9",
+      "resposta": "Aqui está tudo junto! Imagem, áudio, sticker e link",
       "pausarBot": false,
       "mostraDigitando": true,
       "mostraGravando": false,
-      "arquivoAudio": "",
-      "arquivoPdf": "",
-      "arquivoImagem": "assets/logo.png",
-      "arquivoSticker": "",
+      "arquivoAudio": "audio.mp3",
+      "arquivoPdf": "catalogo.pdf",
+      "arquivoImagem": "logo.jpg",
+      "arquivoSticker": "sticker.webp",
       "temBotoes": false,
       "opcoesBotoes": [],
       "tempoDelay": 3000,
-      "link": "",
+      "link": "https://www.squidev.com.br",
       "ativo": true
     }
   ],
@@ -46,17 +178,13 @@
     "descricao": ""
   },
   "logMensagens": [
-    "[27/05/2025, 00:11:37] Matteus Bonotto (5519995910737): 1",
-    "[27/05/2025, 00:42:23] Matteus Bonotto (5519995910737): 2",
-    "[27/05/2025, 00:43:26] Matteus Bonotto (5519995910737): 2",
-    "[27/05/2025, 00:44:59] Matteus Bonotto (5519995910737): 2"
+    "[27/05/2025, 01:08:55] Matteus Bonotto (5519995910737): 1",
+    "[27/05/2025, 01:09:00] Matteus Bonotto (5519995910737): 2",
+    "[27/05/2025, 01:10:11] Matteus Bonotto (5519995910737): 2",
+    "[27/05/2025, 01:10:45] Matteus Bonotto (5519995910737): 2",
+    "[27/05/2025, 01:11:38] Matteus Bonotto (5519995910737): 3"
   ],
-  "votos": {
-    "Sim": 1,
-    "Não": 0
-  },
+  "votos": {},
   "pausaAutomatica": {},
-  "historicoRespostas": {
-    "5519995910737@c.us": "teste"
-  }
+  "historicoRespostas": {}
 }
