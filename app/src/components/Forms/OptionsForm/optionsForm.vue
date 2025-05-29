@@ -1,268 +1,464 @@
 <template>
   <div class="container py-4">
-    <div class="row align-items-center mb-4">
-      <div class="col-auto">
-        <button
-          class="btn btn-sm btn-primary rounded-pill"
-          @click="voltarParaLista"
-        >
+    <!-- Loading Overlay -->
+    <div v-if="isLoading" class="loading-overlay">
+      <div class="spinner-border text-primary spinner" role="status">
+        <span class="visually-hidden">Carregando...</span>
+      </div>
+    </div>
+
+    <!-- Existing header div -->
+    <div class="d-flex align-items-center mb-4">
+      <div class="me-3">
+        <button class="btn btn-sm btn-primary rounded-pill" @click="voltarParaLista">
           <i class="bi bi-arrow-left"></i> Voltar
         </button>
       </div>
-      <div class="col">
+      <div>
         <h1 class="h4 mb-0">{{ formData.id ? 'Editar' : 'Criar nova' }} resposta</h1>
       </div>
     </div>
 
-    <form @submit.prevent="handleSubmit" enctype="multipart/form-data">
+    <form @submit.prevent="handleSubmit" class="needs-validation" novalidate>
+      <!-- Seção de Configurações Básicas -->
       <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Configurações Básicas</h5>
+        </div>
         <div class="card-body">
-          <div class="row mb-3">
+          <!-- Acionador e Status -->
+          <div class="row g-3 mb-3">
             <div class="col-md-6">
-              <label for="acionador" class="form-label">Acionador</label>
-              <input
-                type="text"
-                class="form-control"
-                id="acionador"
-                v-model="formData.acionador"
-                placeholder="Palavra ou frase que ativa a resposta"
-                required
-              />
-            </div>
-            <div class="col-md-6">
-              <label for="titulo" class="form-label">Título</label>
-              <input
-                type="text"
-                class="form-control"
-                id="titulo"
-                v-model="formData.titulo"
-                placeholder="Título para identificação"
-                required
-              />
-            </div>
-          </div>
-
-          <div class="mb-3">
-            <label for="resposta" class="form-label">Resposta do chatbot</label>
-            <textarea
-              class="form-control"
-              id="resposta"
-              v-model="formData.resposta"
-              placeholder="Digite a resposta que o bot enviará"
-              rows="4"
-              required
-            ></textarea>
-          </div>
-
-          <div class="row mb-3">
-            <div class="col-md-6">
-              <label for="imagem" class="form-label">Imagem (PNG, JPG)</label>
-              <input
-                type="file"
-                class="form-control"
-                id="imagem"
-                accept="image/png,image/jpeg"
-                @change="e => handleFileUpload(e, 'imagem')"
-              />
-            </div>
-            <div class="col-md-6">
-              <label for="gif" class="form-label">GIF</label>
-              <input
-                type="file"
-                class="form-control"
-                id="gif"
-                accept="image/gif"
-                @change="e => handleFileUpload(e, 'gif')"
-              />
-            </div>
-          </div>
-
-          <div class="row mb-3">
-            <div class="col-md-6">
-              <label for="audio" class="form-label">Áudio (MP3, WAV)</label>
-              <input
-                type="file"
-                class="form-control"
-                id="audio"
-                accept="audio/mpeg,audio/wav"
-                @change="e => handleFileUpload(e, 'audio')"
-              />
-            </div>
-            <div class="col-md-6">
-              <label for="sticker" class="form-label">Sticker (WebP)</label>
-              <input
-                type="file"
-                class="form-control"
-                id="sticker"
-                accept="image/webp"
-                @change="e => handleFileUpload(e, 'sticker')"
-              />
-            </div>
-          </div>
-
-          <div class="mb-3">
-            <label for="pdf" class="form-label">PDF</label>
-            <input
-              type="file"
-              class="form-control"
-              id="pdf"
-              accept="application/pdf"
-              @change="e => handleFileUpload(e, 'pdf')"
-            />
-          </div>
-
-          <!-- Preview de arquivos -->
-          <div v-if="hasPreviewableFiles" class="mb-4">
-            <h5 class="mb-3">Visualização de Arquivos</h5>
-            <div class="row g-3">
-              <template v-if="previewUrls.imagem">
-                <div class="col-md-4">
-                  <div class="card h-100">
-                    <img :src="previewUrls.imagem" class="card-img-top" alt="Preview de Imagem" />
-                    <div class="card-body">
-                      <button class="btn btn-sm btn-danger w-100" @click="removerArquivo('imagem')">
-                        <i class="bi bi-trash"></i> Remover
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </template>
-
-              <template v-if="previewUrls.gif">
-                <div class="col-md-4">
-                  <div class="card h-100">
-                    <img :src="previewUrls.gif" class="card-img-top" alt="Preview de GIF" />
-                    <div class="card-body">
-                      <button class="btn btn-sm btn-danger w-100" @click="removerArquivo('gif')">
-                        <i class="bi bi-trash"></i> Remover
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </template>
-
-              <template v-if="previewUrls.sticker">
-                <div class="col-md-4">
-                  <div class="card h-100">
-                    <img :src="previewUrls.sticker" class="card-img-top" alt="Preview de Sticker" />
-                    <div class="card-body">
-                      <button class="btn btn-sm btn-danger w-100" @click="removerArquivo('sticker')">
-                        <i class="bi bi-trash"></i> Remover
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </template>
-
-              <template v-if="previewUrls.audio">
-                <div class="col-md-4">
-                  <div class="card h-100">
-                    <div class="card-body">
-                      <audio controls class="w-100 mb-2">
-                        <source :src="previewUrls.audio" type="audio/mpeg">
-                        Seu navegador não suporta o elemento de áudio.
-                      </audio>
-                      <button class="btn btn-sm btn-danger w-100" @click="removerArquivo('audio')">
-                        <i class="bi bi-trash"></i> Remover
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </template>
-
-              <template v-if="formData.arquivoPdf">
-                <div class="col-md-4">
-                  <div class="card h-100">
-                    <div class="card-body text-center">
-                      <i class="bi bi-file-pdf display-4 text-danger"></i>
-                      <p class="mb-2">{{ formData.arquivoPdf }}</p>
-                      <button class="btn btn-sm btn-danger w-100" @click="removerArquivo('pdf')">
-                        <i class="bi bi-trash"></i> Remover
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </template>
-            </div>
-          </div>
-
-          <!-- Configurações avançadas -->
-          <div class="card">
-            <div class="card-header bg-light">
-              <h5 class="mb-0">Configurações Avançadas</h5>
-            </div>
-            <div class="card-body">
-              <div class="row">
-                <div class="col-md-6">
-                  <div class="form-check form-switch mb-3">
-                    <input 
-                      class="form-check-input" 
-                      type="checkbox" 
-                      id="mostraDigitando"
-                      v-model="formData.mostraDigitando"
-                    >
-                    <label class="form-check-label" for="mostraDigitando">
-                      Mostrar "digitando..."
-                    </label>
-                  </div>
-                  <div class="form-check form-switch mb-3">
-                    <input 
-                      class="form-check-input" 
-                      type="checkbox" 
-                      id="mostraGravando"
-                      v-model="formData.mostraGravando"
-                    >
-                    <label class="form-check-label" for="mostraGravando">
-                      Mostrar "gravando áudio..."
-                    </label>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="mb-3">
-                    <label for="tempoDelay" class="form-label">Tempo de Delay (ms)</label>
-                    <input 
-                      type="number" 
-                      class="form-control" 
-                      id="tempoDelay"
-                      v-model="formData.tempoDelay"
-                      min="0" 
-                      step="500"
-                    >
-                  </div>
-                  <div class="mb-3">
-                    <label for="link" class="form-label">Link (opcional)</label>
-                    <input 
-                      type="url" 
-                      class="form-control" 
-                      id="link"
-                      v-model="formData.link"
-                      placeholder="https://..."
-                    >
-                  </div>
+              <label class="form-label">Acionador <span class="text-danger">*</span></label>
+              <div class="input-group has-validation">
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  v-model="formData.acionador"
+                  :class="{ 'is-invalid': !formData.acionador && validated }"
+                  placeholder="Palavra ou frase que ativa a resposta"
+                  required
+                />
+                <div class="invalid-feedback">
+                  Por favor, insira um acionador.
                 </div>
               </div>
             </div>
+            <div class="col-md-6">              <label class="form-label">Status de Ação</label>
+              <select class="form-select" v-model="formData.statusAcao">
+                <option value="nenhum">Nenhum</option>
+                <option value="digitando">Digitando</option>
+                <option value="gravando">Gravando</option>
+                <option value="todos">Todos</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Delays condicionais -->
+          <div class="row g-3 mb-3" v-if="formData.statusAcao && formData.statusAcao !== 'nenhum'">
+            <div class="col-md-6" v-if="showDigitandoDelay">
+              <label class="form-label">Delay Digitando (ms)</label>
+              <input 
+                type="number" 
+                class="form-control" 
+                v-model.number="formData.delayDigitando"
+                min="0"
+              />
+            </div>
+            <div class="col-md-6" v-if="showGravandoDelay">
+              <label class="form-label">Delay Gravando (ms)</label>
+              <input 
+                type="number" 
+                class="form-control" 
+                v-model.number="formData.delayGravando"
+                min="0"
+              />
+            </div>
+          </div>
+
+          <!-- Switches -->
+          <div class="form-switches">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" v-model="formData.ativo" id="switchAtivo">
+              <label class="form-check-label" for="switchAtivo">Ativo</label>
+            </div>
+
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" v-model="formData.pausarBot" id="switchPausarBot">
+              <label class="form-check-label" for="switchPausarBot">Pausar Bot</label>
+            </div>
+
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" v-model="formData.temReacao" id="switchReacao">
+              <label class="form-check-label" for="switchReacao">Reação</label>
+            </div>
+
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" v-model="formData.temBotoes" id="switchBotoes">
+              <label class="form-check-label" for="switchBotoes">Usar Botões</label>
+            </div>
+
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" v-model="formData.mencao" id="switchMencao">
+              <label class="form-check-label" for="switchMencao">Mencionar Usuário</label>
+            </div>
+          </div>
+
+          <!-- Campos condicionais -->
+          <div v-if="formData.pausarBot" class="mt-3">
+            <label class="form-label">Tempo de Pausa (segundos)</label>
+            <input 
+              type="number" 
+              class="form-control" 
+              v-model.number="formData.tempoPausaBot"
+              placeholder="Deixe em branco para pausa indefinida"
+              min="0"
+            />
+          </div>
+      <div v-if="formData.tipoMensagem === 'reacao'" class="mt-3">
+            <label class="form-label">Emoji de Reação <span class="text-danger">*</span></label>
+            <div class="input-group">
+              <input 
+                type="text" 
+                class="form-control" 
+                v-model="formData.reacao"
+                placeholder="Selecione um emoji"
+                maxlength="2"
+                readonly
+                required
+                :class="{ 'is-invalid': !formData.reacao && validated }"
+              />
+              <button 
+                class="btn btn-outline-secondary" 
+                type="button"
+                @click="toggleEmojiPicker"
+              >
+                <i class="bi bi-emoji-smile"></i>
+              </button>
+            </div>
+            <div class="invalid-feedback">
+              Por favor, selecione um emoji.
+            </div>
+            <EmojiPicker 
+              :show="showEmojiPicker" 
+              @select="selectEmoji"
+              @close="showEmojiPicker = false"
+            />
           </div>
         </div>
       </div>
 
-      <div class="text-end">
-        <button type="button" class="btn btn-secondary me-2" @click="voltarParaLista">
-          Cancelar
+      <!-- Tipo de Mensagem -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Tipo de Mensagem</h5>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label">Tipo <span class="text-danger">*</span></label>
+            <select 
+              class="form-select" 
+              v-model="formData.tipoMensagem"
+              :class="{ 'is-invalid': !formData.tipoMensagem && validated }"
+              required
+            >
+              <option value="">Selecione um tipo</option>
+              <option v-for="tipo in tiposMensagem" :key="tipo.valor" :value="tipo.valor">
+                {{ tipo.nome }}
+              </option>
+            </select>
+            <div class="invalid-feedback">
+              Por favor, selecione um tipo de mensagem.
+            </div>
+          </div>
+
+          <!-- Campos específicos por tipo -->
+          <div class="tipo-mensagem-content" v-if="formData.tipoMensagem">
+            <!-- Texto -->
+            <div v-if="formData.tipoMensagem === 'texto'" class="mb-3">
+              <label class="form-label">Resposta <span class="text-danger">*</span></label>
+              <textarea 
+                class="form-control" 
+                v-model="formData.resposta" 
+                rows="3"
+                :class="{ 'is-invalid': !formData.resposta && validated }"
+                placeholder="Digite a resposta que será enviada"
+                required
+              ></textarea>
+              <div class="form-text">Use {{mencao}} para mencionar o nome do cliente</div>
+              <div class="invalid-feedback">
+                Por favor, digite uma resposta.
+              </div>
+            </div>
+
+            <!-- Arquivo -->
+            <div v-if="formData.tipoMensagem === 'arquivo'" class="row g-3">
+              <div class="col-md-12">
+                <label class="form-label">Arquivo <span class="text-danger">*</span></label>
+                <input 
+                  type="file" 
+                  class="form-control"
+                  :class="{ 'is-invalid': !formData.arquivo && validated }"
+                  @change="handleFileUpload"
+                  required
+                />
+                <div class="invalid-feedback">
+                  Por favor, selecione um arquivo.
+                </div>
+                <FilePreview 
+                  v-if="formData.arquivo" 
+                  :file="formData.arquivo"
+                />
+              </div>
+              <div class="col-md-12">
+                <label class="form-label">Legenda</label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  v-model="formData.legenda"
+                  placeholder="Legenda opcional para o arquivo"
+                />
+              </div>
+            </div>
+
+            <!-- Localização -->
+            <div v-if="formData.tipoMensagem === 'localizacao'" class="row g-3">
+              <div class="col-md-4">
+                <label class="form-label">Latitude <span class="text-danger">*</span></label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  v-model="formData.localizacao.latitude"
+                  :class="{ 'is-invalid': !formData.localizacao.latitude && validated }"
+                  placeholder="-22.9519"
+                  required
+                />
+                <div class="invalid-feedback">
+                  Latitude é obrigatória.
+                </div>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Longitude <span class="text-danger">*</span></label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  v-model="formData.localizacao.longitude"
+                  :class="{ 'is-invalid': !formData.localizacao.longitude && validated }"
+                  placeholder="-43.2105"
+                  required
+                />
+                <div class="invalid-feedback">
+                  Longitude é obrigatória.
+                </div>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Descrição</label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  v-model="formData.localizacao.descricao"
+                  placeholder="Nome do local"
+                />
+              </div>
+            </div>
+
+            <!-- Link -->
+            <div v-if="formData.tipoMensagem === 'link'" class="mb-3">
+                <label class="form-label">URL <span class="text-danger">*</span></label>
+                <input 
+                  type="url" 
+                  class="form-control" 
+                  v-model="formData.link"
+                  :class="{ 'is-invalid': !formData.link && validated }"
+                  placeholder="https://exemplo.com"
+                  required
+                />
+                <div class="invalid-feedback">
+                  Por favor, insira uma URL válida.
+                </div>
+              </div>
+
+            <!-- Lista -->
+            <div v-if="formData.tipoMensagem === 'lista'" class="lista-config">
+              <div class="mb-3">
+                <label class="form-label">Título da Lista <span class="text-danger">*</span></label>
+                <input 
+                  type="text" 
+                  class="form-control"
+                  v-model="formData.listaConfig.title"
+                  :class="{ 'is-invalid': !formData.listaConfig.title && validated }"
+                  placeholder="Menu Interativo"
+                  required
+                />
+                <div class="invalid-feedback">
+                  Título da lista é obrigatório.
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Descrição</label>
+                <input 
+                  type="text" 
+                  class="form-control"
+                  v-model="formData.listaConfig.description"
+                  placeholder="Por favor, selecione uma das opções abaixo"
+                />
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Texto do Botão</label>
+                <input 
+                  type="text" 
+                  class="form-control"
+                  v-model="formData.listaConfig.buttonText"
+                  placeholder="Escolha uma opção"
+                />
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Rodapé</label>
+                <input 
+                  type="text" 
+                  class="form-control"
+                  v-model="formData.listaConfig.footer"
+                  placeholder="Obrigado por participar"
+                />
+              </div>
+
+              <!-- Opções da Lista -->
+              <div class="lista-opcoes mt-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h6 class="mb-0">Opções da Lista</h6>
+                  <button type="button" class="btn btn-sm btn-primary" @click="adicionarOpcaoLista">
+                    <i class="bi bi-plus-circle"></i> Adicionar Opção
+                  </button>
+                </div>
+
+                <div v-for="(opcao, index) in formData.opcoesLista" :key="index" class="card mb-3">
+                  <div class="card-body">
+                    <div class="row g-3">
+                      <div class="col-md-4">
+                        <label class="form-label">ID</label>                        <input 
+                          type="text" 
+                          class="form-control" 
+                          :value="'option_' + (index + 1)"
+                          disabled
+                        />
+                      </div>
+                      <div class="col-md-4">
+                        <label class="form-label">Título <span class="text-danger">*</span></label>
+                        <input 
+                          type="text" 
+                          class="form-control"
+                          v-model="opcao.title"
+                          :class="{ 'is-invalid': !opcao.title && validated }"
+                          required
+                        />
+                        <div class="invalid-feedback">
+                          Título da opção é obrigatório.
+                        </div>
+                      </div>
+                      <div class="col-md-4">
+                        <label class="form-label">Descrição</label>
+                        <div class="input-group">
+                          <input 
+                            type="text" 
+                            class="form-control"
+                            v-model="opcao.description"
+                          />
+                          <button 
+                            type="button" 
+                            class="btn btn-outline-danger"
+                            @click="removerOpcaoLista(index)"
+                          >
+                            <i class="bi bi-trash"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Botões -->
+            <div v-if="formData.temBotoes" class="botoes-config">
+              <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h6 class="mb-0">Opções de Botões</h6>
+                  <button type="button" class="btn btn-sm btn-primary" @click="adicionarBotao">
+                    <i class="bi bi-plus-circle"></i> Adicionar Botão
+                  </button>
+                </div>
+
+                <div v-for="(botao, index) in formData.opcoesBotoes" :key="index" class="card mb-3">
+                  <div class="card-body">
+                    <div class="row g-3">
+                      <div class="col-md-6">
+                        <label class="form-label">Texto do Botão <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                          <input 
+                            type="text" 
+                            class="form-control"
+                            v-model="botao.texto"
+                            :class="{ 'is-invalid': !botao.texto && validated }"
+                            required
+                            placeholder="Clique aqui"
+                          />
+                          <button 
+                            type="button" 
+                            class="btn btn-outline-danger"
+                            @click="removerBotao(index)"
+                          >
+                            <i class="bi bi-trash"></i>
+                          </button>
+                        </div>
+                        <div class="invalid-feedback">
+                          Texto do botão é obrigatório.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Fechamento de divs -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Botões de Ação -->
+      <div class="d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-secondary" @click="voltarParaLista">
+          <i class="bi bi-x-circle"></i> Cancelar
         </button>
         <button type="submit" class="btn btn-primary">
-          {{ formData.id ? 'Atualizar' : 'Salvar' }}
+          <i class="bi bi-check-circle"></i> Salvar
         </button>
       </div>
     </form>
+
+    <!-- Toast Notification -->
+    <div v-if="toast.show" :class="`toast align-items-center text-bg-${toast.type} position-fixed bottom-0 end-0 show`" role="alert">
+      <div class="d-flex">
+        <div class="toast-body">
+          {{ toast.message }}
+        </div>
+        <button type="button" class="btn-close btn-close-white" @click="toast.show = false" aria-label="Close"></button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import * as respostasService from '../../../services/respostasService';
+import FilePreview from './FilePreview.vue';
+import EmojiPicker from './EmojiPicker.vue';
+import './optionsForm.css';
 
-// Define as props
+// Props e Emits
 const props = defineProps({
   respostaParaEditar: {
     type: Object,
@@ -272,197 +468,296 @@ const props = defineProps({
 
 const emit = defineEmits(['navigate']);
 
-// Estado do formulário
-const formData = ref({
-  id: null,
-  titulo: '',
-  acionador: '',
-  resposta: '',
-  arquivoImagem: '',
-  arquivoGif: '',
-  arquivoPdf: '',
-  arquivoAudio: '',
-  arquivoSticker: '',
-  tipoResposta: 'unica',
-  tempoDelay: 1000,
-  mostraDigitando: true,
-  mostraGravando: false,
-  link: '',
-  ativo: true
+// Toast e Loading States
+const toast = ref({
+  show: false,
+  message: '',
+  type: 'success'
 });
 
-// Estado das previews
-const previewUrls = ref({
-  imagem: null,
-  gif: null,
-  audio: null,
-  sticker: null
-});
-
-// Computed para verificar se há arquivos para preview
-const hasPreviewableFiles = computed(() => {
-  return Object.values(previewUrls.value).some(url => url) || formData.value.arquivoPdf;
-});
-
-// Validação de arquivos
-const validarArquivo = (file, tipo) => {
-  const limitesTamanho = {
-    imagem: 5 * 1024 * 1024,    // 5MB
-    gif: 8 * 1024 * 1024,       // 8MB
-    pdf: 10 * 1024 * 1024,      // 10MB
-    audio: 16 * 1024 * 1024,    // 16MB
-    sticker: 1 * 1024 * 1024    // 1MB
+const showToast = (message, type = 'success') => {
+  toast.value = {
+    show: true,
+    message,
+    type
   };
-
-  if (!file) return { valido: false, mensagem: 'Nenhum arquivo selecionado' };
-  
-  if (file.size > limitesTamanho[tipo]) {
-    return { 
-      valido: false, 
-      mensagem: `O arquivo é muito grande. Tamanho máximo: ${limitesTamanho[tipo] / (1024 * 1024)}MB` 
-    };
-  }
-
-  return { valido: true };
+  setTimeout(() => {
+    toast.value.show = false;
+  }, 3000);
 };
 
-// Gerenciamento de uploads
-const handleFileUpload = async (event, tipo) => {
+const isLoading = ref(false);
+
+// Emoji Picker
+const showEmojiPicker = ref(false);
+
+const toggleEmojiPicker = () => {
+  showEmojiPicker.value = !showEmojiPicker.value;
+};
+
+const selectEmoji = (emoji) => {
+  formData.value.reacao = emoji;
+  showEmojiPicker.value = false;
+};
+
+// Computed properties
+const showDigitandoDelay = computed(() => {
+  return formData.value.statusAcao === 'digitando' || formData.value.statusAcao === 'todos';
+});
+
+const showGravandoDelay = computed(() => {
+  return formData.value.statusAcao === 'gravando' || formData.value.statusAcao === 'todos';
+});
+
+// Tipos de mensagem disponíveis
+const tiposMensagem = [
+  { nome: 'Texto', valor: 'texto', icone: 'bi bi-chat-text' },
+  { nome: 'Lista', valor: 'lista', icone: 'bi bi-list-ul' },
+  { nome: 'Arquivo', valor: 'arquivo', icone: 'bi bi-file-earmark' },
+  { nome: 'Link', valor: 'link', icone: 'bi bi-link' },
+  { nome: 'Localização', valor: 'localizacao', icone: 'bi bi-geo-alt' },
+  { nome: 'Reação', valor: 'reacao', icone: 'bi bi-emoji-smile' }
+];
+
+// Estado do formulário e validação
+const validated = ref(false);
+const formData = ref({
+  // Dados básicos
+  id: null,
+  acionador: '',
+  tipoMensagem: '',
+  resposta: '',
+  statusAcao: 'nenhum',
+  delayDigitando: 1000,
+  delayGravando: 1000,
+    // Status
+  pausarBot: false,
+  tempoPausaBot: null,
+  mostraDigitando: false,
+  mostraGravando: false,
+  ativo: true,
+
+  // Tempo de delay
+  tempoDelay: 1000,
+  
+  // Arquivos de mídia
+  arquivo: null,
+  legenda: '',
+  arquivos: {
+    audio: null,
+    pdf: null,
+    imagem: null,
+    sticker: null,
+    video: null,
+    gif: null
+  },
+  
+  // Localização
+  localizacao: {
+    latitude: '',
+    longitude: '',
+    descricao: ''
+  },
+  
+  // Botões
+  temBotoes: false,
+  opcoesBotoes: [],
+  
+  // Lista
+  temLista: false,
+  opcoesLista: [],
+  listaConfig: {
+    title: '',
+    description: '',
+    buttonText: 'Escolha uma opção',
+    footer: ''
+  },
+  
+  // Outros recursos
+  reacao: '',
+  mencao: false,
+  link: ''
+});
+
+// Gerenciamento de botões
+const adicionarBotao = () => {
+  formData.value.opcoesBotoes.push({
+    texto: ''
+  });
+};
+
+const removerBotao = (index) => {
+  formData.value.opcoesBotoes.splice(index, 1);
+};
+
+// Gerenciamento de lista
+const adicionarOpcaoLista = () => {
+  formData.value.opcoesLista.push({
+    rowId: `option_${formData.value.opcoesLista.length + 1}`,
+    title: '',
+    description: ''
+  });
+};
+
+const removerOpcaoLista = (index) => {
+  formData.value.opcoesLista.splice(index, 1);
+  // Atualiza os IDs das opções restantes
+  formData.value.opcoesLista.forEach((opcao, i) => {
+    opcao.rowId = `option_${i + 1}`;
+  });
+};
+
+// Gerenciamento de arquivos
+const handleFileUpload = (event) => {
   const file = event.target.files[0];
   if (!file) return;
 
-  const validacao = validarArquivo(file, tipo);
-  if (!validacao.valido) {
-    alert(validacao.mensagem);
-    event.target.value = ''; // Limpa o input
+  formData.value.arquivo = file;
+  
+  // Determina o tipo de arquivo
+  if (file.type.startsWith('image/')) {
+    if (file.type === 'image/gif') {
+      formData.value.arquivos.gif = file;
+    } else if (file.type === 'image/webp') {
+      formData.value.arquivos.sticker = file;
+    } else {
+      formData.value.arquivos.imagem = file;
+    }
+  } else if (file.type.startsWith('video/')) {
+    formData.value.arquivos.video = file;
+  } else if (file.type.startsWith('audio/')) {
+    formData.value.arquivos.audio = file;
+  } else if (file.type === 'application/pdf') {
+    formData.value.arquivos.pdf = file;
+  }
+};
+
+// Emoji selector
+const abrirSeletorEmoji = () => {
+  // Aqui você pode implementar um seletor de emoji ou usar uma biblioteca
+  alert('Implementar seletor de emoji');
+};
+
+// Validação e salvamento
+const validarFormulario = () => {
+  validated.value = true;
+  // Validação básica
+  if (!formData.value.acionador) return false;
+  if (!formData.value.tipoMensagem) return false;
+  
+  // Validações específicas por tipo
+  switch (formData.value.tipoMensagem) {
+    case 'texto':
+      if (!formData.value.resposta) return false;
+      break;
+    case 'arquivo':
+      if (!formData.value.arquivo) return false;
+      break;
+    case 'localizacao':
+      if (!formData.value.localizacao.latitude || !formData.value.localizacao.longitude) return false;
+      break;
+    case 'lista':
+      if (!formData.value.listaConfig.title) return false;
+      if (formData.value.opcoesLista.length === 0) return false;
+      if (formData.value.opcoesLista.some(opcao => !opcao.title)) return false;
+      break;
+    case 'reacao':
+      if (!formData.value.reacao) return false;
+      break;
+    case 'link':
+      if (!formData.value.link) return false;
+      break;
+  }
+
+  // Validação de botões
+  if (formData.value.temBotoes) {
+    if (formData.value.opcoesBotoes.length === 0) return false;
+    if (formData.value.opcoesBotoes.some(botao => !botao.texto)) return false;
+  }
+
+  return true;
+};
+
+const handleSubmit = async (event) => {
+  if (!validarFormulario()) {
     return;
   }
 
-  // Criar URL para preview
-  if (tipo !== 'pdf') {
-    previewUrls.value[tipo] = URL.createObjectURL(file);
-  }
+  try {    // Prepara os dados no formato da classe RespostaChatBot
+    const dadosParaSalvar = {
+      id: formData.value.id || Date.now().toString(),
+      acionador: formData.value.acionador,
+      tipoMensagem: formData.value.tipoMensagem,
+      resposta: formData.value.resposta,
+      pausarBot: formData.value.pausarBot,
+      mostraDigitando: formData.value.statusAcao === 'digitando' || formData.value.statusAcao === 'todos',
+      mostraGravando: formData.value.statusAcao === 'gravando' || formData.value.statusAcao === 'todos',
+      tempoDelay: formData.value.statusAcao === 'digitando' ? formData.value.delayDigitando : 
+                 formData.value.statusAcao === 'gravando' ? formData.value.delayGravando : 1000,
+      
+      // Arquivos de mídia
+      arquivoAudio: formData.value.arquivos.audio ? URL.createObjectURL(formData.value.arquivos.audio) : '',
+      arquivoPdf: formData.value.arquivos.pdf ? URL.createObjectURL(formData.value.arquivos.pdf) : '',
+      arquivoImagem: formData.value.arquivos.imagem ? URL.createObjectURL(formData.value.arquivos.imagem) : '',
+      arquivoSticker: formData.value.arquivos.sticker ? URL.createObjectURL(formData.value.arquivos.sticker) : '',
+      arquivoVideo: formData.value.arquivos.video ? URL.createObjectURL(formData.value.arquivos.video) : '',
+      
+      // Localização
+      localizacao: {
+        latitude: formData.value.localizacao.latitude,
+        longitude: formData.value.localizacao.longitude,
+        descricao: formData.value.localizacao.descricao
+      },
+      
+      // Botões
+      temBotoes: formData.value.temBotoes,
+      opcoesBotoes: formData.value.opcoesBotoes,
+      
+      // Lista
+      temLista: formData.value.tipoMensagem === 'lista',
+      opcoesLista: formData.value.opcoesLista,
+      
+      // Outros recursos
+      reacao: formData.value.reacao,
+      mencao: formData.value.mencao,
+      link: formData.value.link,
+      ativo: formData.value.ativo
+    };
 
-  // Atualiza o formData com o nome do arquivo
-  switch (tipo) {
-    case 'imagem':
-      formData.value.arquivoImagem = file.name;
-      break;
-    case 'gif':
-      formData.value.arquivoGif = file.name;
-      break;
-    case 'pdf':
-      formData.value.arquivoPdf = file.name;
-      break;
-    case 'audio':
-      formData.value.arquivoAudio = file.name;
-      break;
-    case 'sticker':
-      formData.value.arquivoSticker = file.name;
-      break;
-  }
-};
+    isLoading.value = true;
 
-// Remover arquivo
-const removerArquivo = (tipo) => {
-  if (tipo !== 'pdf' && previewUrls.value[tipo]) {
-    URL.revokeObjectURL(previewUrls.value[tipo]);
-    previewUrls.value[tipo] = null;
-  }
-
-  switch (tipo) {
-    case 'imagem':
-      formData.value.arquivoImagem = '';
-      break;
-    case 'gif':
-      formData.value.arquivoGif = '';
-      break;
-    case 'pdf':
-      formData.value.arquivoPdf = '';
-      break;
-    case 'audio':
-      formData.value.arquivoAudio = '';
-      break;
-    case 'sticker':
-      formData.value.arquivoSticker = '';
-      break;
-  }
-};
-
-// Submit do formulário
-const handleSubmit = async (event) => {
-  event.preventDefault();
-  
-  try {
     if (formData.value.id) {
-      await respostasService.atualizarResposta(formData.value);
+      await respostasService.atualizarResposta(dadosParaSalvar);
     } else {
-      await respostasService.criarResposta(formData.value);
+      await respostasService.adicionarResposta(dadosParaSalvar);
     }
 
-    // Limpar URLs de preview
-    Object.keys(previewUrls.value).forEach(key => {
-      if (previewUrls.value[key]) {
-        URL.revokeObjectURL(previewUrls.value[key]);
-      }
-    });
-
+    showToast('Resposta salva com sucesso!');
     voltarParaLista();
   } catch (error) {
-    alert('Erro ao salvar resposta: ' + error.message);
+    console.error('Erro ao salvar:', error);
+    showToast('Erro ao salvar resposta: ' + error.message, 'danger');
+  } finally {
+    isLoading.value = false;
   }
 };
 
-// Voltar para a listagem
+// Navegação
 const voltarParaLista = () => {
   emit('navigate', 'CrudForm');
 };
 
-// Se houver uma resposta para editar, preenche o formulário
-if (props.respostaParaEditar) {
-  formData.value = { ...props.respostaParaEditar };
-}
+// Inicialização
+onMounted(() => {
+  if (props.respostaParaEditar) {
+    formData.value = {
+      ...formData.value,
+      ...props.respostaParaEditar,
+      statusAcao: props.respostaParaEditar.mostraDigitando && props.respostaParaEditar.mostraGravando ? 'todos' :
+                 props.respostaParaEditar.mostraDigitando ? 'digitando' :
+                 props.respostaParaEditar.mostraGravando ? 'gravando' : ''
+    };
+  }
+});
 </script>
 
-<style scoped>
-.card {
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-}
-
-.preview-container {
-  background-color: #f8f9fa;
-  border-radius: 0.25rem;
-  padding: 1rem;
-}
-
-.preview-item {
-  text-align: center;
-}
-
-.card-img-top {
-  height: 200px;
-  object-fit: contain;
-  background-color: #f8f9fa;
-}
-
-.bi-file-pdf {
-  font-size: 3rem;
-}
-
-audio {
-  width: 100%;
-}
-
-.form-check-input:checked {
-  background-color: #0d6efd;
-  border-color: #0d6efd;
-}
-
-.btn-danger {
-  transition: all 0.2s;
-}
-
-.btn-danger:hover {
-  transform: scale(1.05);
-}
-</style>

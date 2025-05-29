@@ -12,26 +12,24 @@ const submenuOpen = ref(false);
 // Função para fechar o submenu após a navegação
 const handleNavigation = (page) => {
   // Fechar o menu collapse após a navegação
-  const menuCollapse = document.getElementById('menu-collapse');
+  const menuCollapse = document.getElementById("menu-collapse");
   if (menuCollapse) {
-    menuCollapse.classList.remove('show');
+    menuCollapse.classList.remove("show");
   }
   // Emitir o evento de navegação
-  emit('navigate', page);
+  emit("navigate", page);
 };
 
-const emit = defineEmits(['navigate']);
+const emit = defineEmits(["navigate"]);
 
-
-const disconnect = () => {
-  
-};
-
+const disconnect = () => {};
 </script>
 
 <template>
   <div class="sidebar">
-    <a href="#"><img src="../../assets/logotipo.png" width="250" alt="Squidev"></a>
+    <a href="#"
+      ><img src="../../assets/logotipo.png" width="250" alt="Squidev"
+    /></a>
     <hr />
     <ul class="nav-pills flex-column mb-auto list-unstyled">
       <li @click="$emit('navigate', 'Config')">
@@ -53,11 +51,23 @@ const disconnect = () => {
 
           <div class="collapse" id="menu-collapse">
             <ul class="list-unstyled ms-3">
-              <li class="cursor-pointer" @click="handleNavigation('GerenciadorRespostas')">
+              <li
+                class="cursor-pointer"
+                @click="handleNavigation('optionsForm')"
+              >
                 <i class="bi bi-plus m-1"></i>Novo
               </li>
               <li class="cursor-pointer" @click="handleNavigation('CrudForm')">
                 <i class="bi bi-eye m-1"></i>Ver
+              </li>
+              <li class="cursor-pointer" @click="handleNavigation('GerenciadorRespostas')">
+                <i class="bi bi-eye m-1"></i>emoji
+              </li>
+              <li class="cursor-pointer" @click="handleNavigation('emojiPicker')">
+                <i class="bi bi-eye m-1"></i>filep
+              </li>
+                            <li class="cursor-pointer" @click="handleNavigation('folePreview')">
+                <i class="bi bi-eye m-1"></i>filep
               </li>
             </ul>
           </div>
@@ -69,27 +79,36 @@ const disconnect = () => {
       </li>
     </ul>
     <hr />
-<div class="dropdown">
-  <a
-    href="#"
-    class="d-flex align-items-center text-white text-decoration-none dropdown-toggle"
-    id="dropdownUser1"
-    data-bs-toggle="dropdown"
-    aria-expanded="false"
-  >
-    <img
-      src="../../assets/logo.png"
-      alt=""
-      width="32"
-      height="32"
-      class="rounded-circle me-2"
-    />
-    <strong>Squidev</strong>
-  </a>
-  <ul class="dropdown-menu text-small shadow" aria-labelledby="dropdownUser1">
-    <li><b><a class="dropdown-item text-danger" href="#" @click="disconnect">Desconectar</a></b></li>
-  </ul>
-</div>
+    <div class="dropdown">
+      <a
+        href="#"
+        class="d-flex align-items-center text-white text-decoration-none dropdown-toggle"
+        id="dropdownUser1"
+        data-bs-toggle="dropdown"
+        aria-expanded="false"
+      >
+        <img
+          src="../../assets/logo.png"
+          alt=""
+          width="32"
+          height="32"
+          class="rounded-circle me-2"
+        />
+        <strong>Squidev</strong>
+      </a>
+      <ul
+        class="dropdown-menu text-small shadow"
+        aria-labelledby="dropdownUser1"
+      >
+        <li>
+          <b
+            ><a class="dropdown-item text-danger" href="#" @click="disconnect"
+              >Desconectar</a
+            ></b
+          >
+        </li>
+      </ul>
+    </div>
   </div>
 </template>
 

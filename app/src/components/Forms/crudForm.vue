@@ -75,17 +75,100 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body" v-if="itemDetalhes">
-            <p><strong>Acionador:</strong> {{ itemDetalhes.acionador }}</p>
-            <p><strong>Resposta:</strong> {{ itemDetalhes.resposta }}</p>
-            <p><strong>Status:</strong> {{ itemDetalhes.ativo ? 'Ativo' : 'Inativo' }}</p>
-            <p><strong>Mostra Digitando:</strong> {{ itemDetalhes.mostraDigitando ? 'Sim' : 'Não' }}</p>
-            <p><strong>Mostra Gravando:</strong> {{ itemDetalhes.mostraGravando ? 'Sim' : 'Não' }}</p>
-            <p><strong>Tempo de Delay:</strong> {{ itemDetalhes.tempoDelay }}ms</p>
-            <p v-if="itemDetalhes.arquivoAudio"><strong>Áudio:</strong> {{ itemDetalhes.arquivoAudio }}</p>
-            <p v-if="itemDetalhes.arquivoPdf"><strong>PDF:</strong> {{ itemDetalhes.arquivoPdf }}</p>
-            <p v-if="itemDetalhes.arquivoImagem"><strong>Imagem:</strong> {{ itemDetalhes.arquivoImagem }}</p>
-            <p v-if="itemDetalhes.arquivoSticker"><strong>Sticker:</strong> {{ itemDetalhes.arquivoSticker }}</p>
-            <p v-if="itemDetalhes.link"><strong>Link:</strong> {{ itemDetalhes.link }}</p>
+            <!-- Informações Básicas -->
+            <div class="section-basic mb-3">
+              <h6 class="section-title">Informações Básicas</h6>
+              <p><strong>Acionador:</strong> {{ itemDetalhes.acionador }}</p>
+              <p><strong>Tipo de Mensagem:</strong> {{ itemDetalhes.tipoMensagem }}</p>
+              <p><strong>Resposta:</strong> {{ itemDetalhes.resposta }}</p>
+              <p><strong>Status:</strong> {{ itemDetalhes.ativo ? 'Ativo' : 'Inativo' }}</p>
+            </div>
+
+            <!-- Configurações de Status -->
+            <div class="section-status mb-3">
+              <h6 class="section-title">Configurações de Status</h6>
+              <p><strong>Mostra Digitando:</strong> {{ itemDetalhes.mostraDigitando ? 'Sim' : 'Não' }}</p>
+              <p><strong>Mostra Gravando:</strong> {{ itemDetalhes.mostraGravando ? 'Sim' : 'Não' }}</p>
+              <p><strong>Tempo de Delay:</strong> {{ itemDetalhes.tempoDelay }}ms</p>
+              <p><strong>Pausar Bot:</strong> {{ itemDetalhes.pausarBot ? 'Sim' : 'Não' }}</p>
+            </div>
+
+            <!-- Arquivos -->
+            <div class="section-files mb-3" v-if="hasFiles">
+              <h6 class="section-title">Arquivos</h6>
+              <div v-if="itemDetalhes.arquivoAudio" class="file-preview">
+                <p><strong>Áudio:</strong></p>
+                <audio controls :src="itemDetalhes.arquivoAudio"></audio>
+              </div>
+              <div v-if="itemDetalhes.arquivoPdf" class="file-preview">
+                <p><strong>PDF:</strong></p>
+                <a :href="itemDetalhes.arquivoPdf" target="_blank">Visualizar PDF</a>
+              </div>
+              <div v-if="itemDetalhes.arquivoImagem" class="file-preview">
+                <p><strong>Imagem:</strong></p>
+                <img :src="itemDetalhes.arquivoImagem" alt="Preview" class="img-fluid" />
+              </div>
+              <div v-if="itemDetalhes.arquivoSticker" class="file-preview">
+                <p><strong>Sticker:</strong></p>
+                <img :src="itemDetalhes.arquivoSticker" alt="Sticker" class="img-fluid" />
+              </div>
+              <div v-if="itemDetalhes.arquivoVideo" class="file-preview">
+                <p><strong>Vídeo:</strong></p>
+                <video controls :src="itemDetalhes.arquivoVideo" class="img-fluid"></video>
+              </div>
+            </div>
+
+            <!-- Link -->
+            <div class="section-link mb-3" v-if="itemDetalhes.link">
+              <h6 class="section-title">Link</h6>
+              <p><strong>URL:</strong> <a :href="itemDetalhes.link" target="_blank">{{ itemDetalhes.link }}</a></p>
+            </div>
+
+            <!-- Localização -->
+            <div class="section-location mb-3" v-if="hasLocation">
+              <h6 class="section-title">Localização</h6>
+              <p><strong>Latitude:</strong> {{ itemDetalhes.localizacao?.latitude }}</p>
+              <p><strong>Longitude:</strong> {{ itemDetalhes.localizacao?.longitude }}</p>
+              <p v-if="itemDetalhes.localizacao?.descricao"><strong>Descrição:</strong> {{ itemDetalhes.localizacao.descricao }}</p>
+            </div>
+
+            <!-- Lista -->
+            <div class="section-list mb-3" v-if="itemDetalhes.temLista">
+              <h6 class="section-title">Configuração da Lista</h6>
+              <div class="list-config">
+                <p><strong>Título:</strong> {{ itemDetalhes.listaConfig?.title }}</p>
+                <p v-if="itemDetalhes.listaConfig?.description"><strong>Descrição:</strong> {{ itemDetalhes.listaConfig.description }}</p>
+                <p v-if="itemDetalhes.listaConfig?.buttonText"><strong>Texto do Botão:</strong> {{ itemDetalhes.listaConfig.buttonText }}</p>
+                <p v-if="itemDetalhes.listaConfig?.footer"><strong>Rodapé:</strong> {{ itemDetalhes.listaConfig.footer }}</p>
+              </div>
+              <div class="list-options" v-if="itemDetalhes.opcoesLista?.length">
+                <h6 class="mt-2">Opções da Lista</h6>
+                <ul class="list-unstyled">
+                  <li v-for="(opcao, index) in itemDetalhes.opcoesLista" :key="index" class="mb-2">
+                    <p class="mb-1"><strong>Opção {{ index + 1 }}:</strong></p>
+                    <p class="mb-1 ms-3">Título: {{ opcao.title }}</p>
+                    <p v-if="opcao.description" class="mb-1 ms-3">Descrição: {{ opcao.description }}</p>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Botões -->
+            <div class="section-buttons mb-3" v-if="itemDetalhes.temBotoes && itemDetalhes.opcoesBotoes?.length">
+              <h6 class="section-title">Botões</h6>
+              <ul class="list-unstyled">
+                <li v-for="(botao, index) in itemDetalhes.opcoesBotoes" :key="index" class="mb-2">
+                  <p class="mb-1"><strong>Botão {{ index + 1 }}:</strong> {{ botao.texto }}</p>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Recursos Adicionais -->
+            <div class="section-additional mb-3" v-if="hasAdditionalFeatures">
+              <h6 class="section-title">Recursos Adicionais</h6>
+              <p v-if="itemDetalhes.reacao"><strong>Reação:</strong> {{ itemDetalhes.reacao }}</p>
+              <p><strong>Menção ao Usuário:</strong> {{ itemDetalhes.mencao ? 'Sim' : 'Não' }}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -94,13 +177,38 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import * as bootstrap from 'bootstrap';
 import './crudForm.css';
 import * as respostasService from '../../services/respostasService';
 
 const respostas = ref([]);
 const itemDetalhes = ref(null);
+
+// Computed properties para controle de exibição das seções
+const hasFiles = computed(() => {
+  if (!itemDetalhes.value) return false;
+  return !!(
+    itemDetalhes.value.arquivoAudio ||
+    itemDetalhes.value.arquivoPdf ||
+    itemDetalhes.value.arquivoImagem ||
+    itemDetalhes.value.arquivoSticker ||
+    itemDetalhes.value.arquivoVideo
+  );
+});
+
+const hasLocation = computed(() => {
+  if (!itemDetalhes.value?.localizacao) return false;
+  return !!(
+    itemDetalhes.value.localizacao.latitude ||
+    itemDetalhes.value.localizacao.longitude
+  );
+});
+
+const hasAdditionalFeatures = computed(() => {
+  if (!itemDetalhes.value) return false;
+  return !!(itemDetalhes.value.reacao || itemDetalhes.value.mencao);
+});
 
 // Carregar respostas
 function carregarRespostas() {
